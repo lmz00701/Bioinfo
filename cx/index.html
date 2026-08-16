@@ -1,1 +1,1381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生物信息学入门实验项目：从原始测序数据到变异位点</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+<style>
+:root{
+  --main:#1a5276; --deep:#154360; --green:#1e8449; --orange:#d49b1f;
+  --bg:#f8fafc; --card:#fff; --border:#dde6ef; --gray:#5a5a5a;
+  --codebg:#1e2a35; --codeframe:#3a4a5c;
+  --shadow:0 2px 8px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Noto Serif CJK SC","Source Han Serif SC","Songti SC",Georgia,serif;line-height:1.75;color:#222;background:var(--bg)}
+h1,h2,h3,h4{font-family:"Noto Serif CJK SC","Source Han Serif SC",Georgia,serif;color:var(--deep);line-height:1.35}
+h2{border-bottom:2px solid var(--main);padding-bottom:6px;margin-top:2.4em}
+h3{color:var(--main);margin-top:1.8em}
+code{font-family:"JetBrains Mono","Fira Code","Noto Sans Mono CJK SC","Cascadia Code",Consolas,monospace;font-size:.92em}
+p code,li code{background:#eef3f8;padding:1px 6px;border-radius:3px;color:var(--deep)}
+a{color:var(--green)}
+strong{color:var(--deep)}
+table{border-collapse:collapse;margin:1em 0;width:100%;font-size:.94em}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:#ebf3fa;color:var(--main);font-weight:600}
+table tbody tr:nth-child(even){background:#f7fafd}
 
+/* 布局 */
+header.site{background:linear-gradient(135deg,var(--main),var(--deep));color:#fff;padding:24px 32px;box-shadow:var(--shadow)}
+header.site h1{margin:0;color:#fff;font-size:1.7em}
+header.site .meta{color:rgba(255,255,255,.85);font-size:.9em;margin-top:6px}
+.layout{display:grid;grid-template-columns:280px 1fr;max-width:1280px;margin:0 auto;gap:24px;padding:24px}
+aside.toc{position:sticky;top:20px;align-self:start;background:var(--card);padding:18px 20px;border-radius:8px;box-shadow:var(--shadow);max-height:calc(100vh - 40px);overflow-y:auto;font-size:.92em}
+aside.toc h3{margin:0 0 10px;color:var(--main);font-size:1em;border-bottom:1px solid var(--border);padding-bottom:6px}
+aside.toc ol{list-style:none;padding-left:0;counter-reset:section}
+aside.toc ol li{margin:4px 0;counter-increment:section}
+aside.toc ol li a{color:#333;text-decoration:none;display:block;padding:3px 6px;border-radius:4px}
+aside.toc ol li a:hover{background:#eaf3fb;color:var(--main)}
+aside.toc ol li.lvl2{padding-left:18px}
+aside.toc ol li.lvl3{padding-left:36px;font-size:.88em;color:#555}
+main{min-width:0;background:var(--card);padding:32px 40px;border-radius:8px;box-shadow:var(--shadow)}
+@media(max-width:900px){.layout{grid-template-columns:1fr}aside.toc{position:static;max-height:none}}
+
+/* 章节包装 */
+section.module{padding-top:0;scroll-margin-top:20px}
+
+/* 流程图 */
+.flowchart{background:#f4f8fc;border:1.5px solid var(--main);border-radius:8px;padding:18px;margin:1.2em 0}
+.flowchart h4{margin:0 0 10px;color:var(--main);text-align:center;font-size:1.1em}
+.flowchart .step{background:#fff;margin:8px auto;padding:10px 16px;border-left:4px solid var(--main);border-radius:0 6px 6px 0;max-width:680px}
+.flowchart .step .title{font-weight:bold;color:var(--main)}
+.flowchart .step .desc{color:#555;font-size:.92em;margin-top:3px}
+.flowchart .arrow{text-align:center;color:var(--main);font-size:1.1em;margin:2px 0}
+
+/* 提示框 */
+.box{position:relative;margin:1.2em 0;padding:14px 18px 12px;border-radius:6px;border:1px solid;border-left-width:5px}
+.box .tag{position:absolute;top:-10px;left:14px;background:#fff;padding:0 8px;font-size:.82em;font-weight:bold;letter-spacing:.5px}
+.box.knowledge{background:#e8f4fd;border-color:#5d9cec;color:#1d3a52}
+.box.knowledge .tag{color:#5d9cec}
+.box.note{background:#fff9e5;border-color:#f0c45a;color:#5d4310}
+.box.note .tag{color:#d49b1f}
+.box.tip{background:#eafaf1;border-color:#2ea06e;color:#14512f}
+.box.tip .tag{color:#2ea06e}
+.box.exercise{background:#f4eefc;border-color:#9b73cd;color:#3c2860}
+.box.exercise .tag{color:#9b73cd}
+.box.warn{background:#fdeded;border-color:#dc5f5f;color:#5e1f1f}
+.box.warn .tag{color:#dc5f5f}
+
+/* 代码块 */
+pre[class*="language-"]{background:var(--codebg)!important;color:#e8eef5;border-radius:6px;padding:14px 16px;font-size:.88em;overflow-x:auto;border:1px solid var(--codeframe)}
+pre[class*="language-"]::before{display:none}
+:not(pre)>code[class*="language-"]{padding:1px 6px;border-radius:3px}
+
+/* 表格 caption */
+caption{caption-side:top;text-align:left;font-weight:bold;color:var(--main);padding:6px 0;font-size:.95em}
+
+/* 列表 */
+ul,ol{padding-left:1.5em}
+li{margin:4px 0}
+
+/* 锚点链接 */
+h2 a,h3 a{color:inherit;text-decoration:none;margin-right:6px;opacity:.25;font-size:.7em}
+h2 a:hover,h3 a:hover{opacity:1}
+
+/* 页脚 */
+footer{text-align:center;color:#888;padding:30px 20px;font-size:.85em}
+</style>
+</head>
+<body>
+
+<header class="site">
+<h1>生物信息学入门实验项目</h1>
+<div class="meta">从原始测序数据到变异位点 · 大肠杆菌全基因组重测序分析 · 面向本科及以上学生的入门级实验教材</div>
+</header>
+
+<div class="layout">
+
+<aside class="toc">
+<h3>目录</h3>
+<ol>
+<li class="lvl2"><a href="#ch1">第一章 项目介绍与学习目标</a></li>
+<li class="lvl2"><a href="#ch2">第二章 实验环境与软件清单</a></li>
+<li class="lvl2"><a href="#ch3">第三章 测序技术基础</a></li>
+<li class="lvl2"><a href="#ch4">第四章 核心生物信息学文件格式</a></li>
+<li class="lvl2"><a href="#ch5">第五章 核心算法原理</a></li>
+<li class="lvl2"><a href="#ch6">第六章 模块 1：数据获取</a></li>
+<li class="lvl2"><a href="#ch7">第七章 模块 2：质量控制</a></li>
+<li class="lvl2"><a href="#ch8">第八章 模块 3：序列比对</a></li>
+<li class="lvl2"><a href="#ch9">第九章 模块 4：比对后处理</a></li>
+<li class="lvl2"><a href="#ch10">第十章 模块 5：变异检测</a></li>
+<li class="lvl2"><a href="#ch11">第十一章 模块 6：变异注释</a></li>
+<li class="lvl2"><a href="#ch12">第十二章 模块 7：结果汇总与延伸实验</a></li>
+<li class="lvl2"><a href="#appA">附录 A 软件与环境清单</a></li>
+<li class="lvl2"><a href="#appB">附录 B 常见问题与排错</a></li>
+<li class="lvl2"><a href="#appC">附录 C 术语表</a></li>
+<li class="lvl2"><a href="#appD">附录 D 命令速查</a></li>
+<li class="lvl2"><a href="#appE">附录 E 思考题参考答案</a></li>
+<li class="lvl2"><a href="#appF">附录 F 数据集信息卡与报告模板</a></li>
+</ol>
+</aside>
+
+<main>
+
+<!-- ====================== 第一章 ====================== -->
+<section class="module" id="ch1">
+<h2>第一章 项目介绍与学习目标</h2>
+
+<h3>1.1 项目背景</h3>
+<p>二十一世纪以来，高通量测序技术（Next-Generation Sequencing, NGS）的飞速发展与测序成本的指数级下降，使生物学研究全面迈入"大数据"时代。如今，一台桌面级测序仪（如 Illumina MiSeq）即可在数小时内产出上千万条、总量达数亿碱基的 DNA 序列数据。面对如此规模的数据，传统的"手工比对、肉眼检查"早已无能为力，<strong>生物信息学（Bioinformatics）</strong> 应运而生，成为连接测序数据与生物学发现之间不可或缺的桥梁。</p>
+
+<p>生物信息学是一门交叉学科，它综合运用计算机科学、数学与统计学的方法，对生物数据进行存储、处理、分析与解读。对一名生命科学或数据科学方向的学生而言，掌握生物信息学的核心分析流程，已从"加分项"逐渐演变为"基本功"。</p>
+
+<p>然而，入门生物信息学常常面临两大困难：其一，概念抽象、工具繁多，初学者容易在命令行的汪洋中迷失方向；其二，缺乏一条<strong>完整、可复现、数据量适中的主线</strong>来串联零散的知识点。本实验项目正是为解决这一痛点而设计。</p>
+
+<h4>1.1.1 为什么选择"大肠杆菌重测序"作为入门项目</h4>
+<p>本项目以<strong>大肠杆菌（<em>Escherichia coli</em>）全基因组重测序与变异检测</strong>为主线。选择这一主题，是基于以下考量：</p>
+<ul>
+<li><strong>基因组小、计算友好</strong>：大肠杆菌 K-12 MG1655 的参考基因组仅约 4.6 Mb（兆碱基），不到人类基因组的千分之一点五。所有分析步骤（质控、比对、变异检测）都可在普通个人电脑上数分钟至数十分钟内完成，适合课堂环境与入门练习。</li>
+<li><strong>数据公开、真实可复现</strong>：本项目所用的测序数据与参考基因组均来自国际公共数据库（ENA、NCBI），任何学生都可免费下载、复现全部结果。</li>
+<li><strong>流程完整、代表性强</strong>：从原始测序数据到变异位点，覆盖了生物信息学最核心的一条"黄金流程"——<strong>数据获取 → 质量控制 → 序列比对 → 比对后处理 → 变异检测 → 变异注释</strong>。这条流程的每个环节都是通用技能，可直接迁移到人类、动植物、微生物等其他物种的分析中。</li>
+<li><strong>结果可解读、有科学内涵</strong>：通过对比"同源对照样本"与"野生分离株样本"，学生既能掌握变异检测的技术细节，又能深入理解测序深度、质量控制与假阳性之间的本质关系。</li>
+</ul>
+
+<h3>1.2 项目目标</h3>
+<h4>1.2.1 知识目标</h4>
+<ol>
+<li>理解高通量测序（Illumina）的基本原理与数据特征；</li>
+<li>掌握 FASTA、FASTQ、SAM/BAM、VCF 等核心生物信息学文件格式的结构与含义；</li>
+<li>理解序列比对（BWA-MEM）与变异检测（bcftools）背后的基本算法思想；</li>
+<li>理解 Phred 质量分数、测序深度、覆盖度、假阳性等关键概念；</li>
+<li>掌握变异注释（SnpEff）的意义与变异类型的分类方法。</li>
+</ol>
+
+<h4>1.2.2 技能目标</h4>
+<ol>
+<li>熟练使用 Linux 命令行完成文件的查看、压缩、统计等基本操作；</li>
+<li>使用 conda/mamba 搭建可复现的生物信息学分析环境；</li>
+<li>从公共数据库下载参考基因组与测序数据，并校验数据完整性；</li>
+<li>使用 FastQC 与 fastp 进行测序数据质量评估与过滤；</li>
+<li>使用 BWA-MEM 将测序读段比对到参考基因组，并使用 samtools 完成排序、去重、统计；</li>
+<li>使用 bcftools 进行变异位点检测与过滤，并解读 VCF 结果；</li>
+<li>使用 SnpEff 对变异进行功能注释与分类统计；</li>
+<li>撰写规范的分析报告，以图表与文字呈现分析结果。</li>
+</ol>
+
+<h4>1.2.3 能力目标（可迁移的通用能力）</h4>
+<ul>
+<li><strong>工程化思维</strong>：学会通过目录组织、脚本化、记录命令等方式管理一个可复现的分析项目；</li>
+<li><strong>排错能力</strong>：学会阅读错误信息、查阅软件文档与社区资源独立解决问题；</li>
+<li><strong>数据素养</strong>：学会对分析结果保持批判性审视，区分"技术噪音"与"真实信号"。</li>
+</ul>
+
+<h3>1.3 项目总览</h3>
+<h4>1.3.1 分析流程</h4>
+<p>本项目的主干流程如图 1.1 所示，共分为七个模块。整个流程是一个典型的"变异检测流水线"（Variant Calling Pipeline）。</p>
+
+<div class="flowchart">
+<h4>七大分析模块总览</h4>
+<div class="step"><div class="title">模块 1：数据获取</div><div class="desc">下载参考基因组 + 测序数据（ENA/NCBI），校验完整性</div></div>
+<div class="arrow">↓</div>
+<div class="step"><div class="title">模块 2：数据质控</div><div class="desc">FastQC 评估质量 → fastp 过滤修剪低质量读段</div></div>
+<div class="arrow">↓</div>
+<div class="step"><div class="title">模块 3：序列比对</div><div class="desc">BWA-MEM 将读段比对到参考基因组，生成 SAM/BAM</div></div>
+<div class="arrow">↓</div>
+<div class="step"><div class="title">模块 4：比对后处理</div><div class="desc">samtools 排序、去重、索引、统计覆盖度与深度</div></div>
+<div class="arrow">↓</div>
+<div class="step"><div class="title">模块 5：变异检测</div><div class="desc">bcftools mpileup + call 检测 SNP/InDel，并过滤</div></div>
+<div class="arrow">↓</div>
+<div class="step"><div class="title">模块 6：变异注释</div><div class="desc">SnpEff 注释变异功能，分类统计（错义/同义等）</div></div>
+<div class="arrow">↓</div>
+<div class="step"><div class="title">模块 7：结果汇总与报告</div><div class="desc">汇总统计、解读结果、撰写报告、延伸实验</div></div>
+</div>
+<p style="text-align:center;color:var(--main);font-size:.9em">图 1.1：本项目主干分析流程</p>
+
+<h4>1.3.2 数据集方案</h4>
+<p>本项目提供<strong>两套真实测序数据集</strong>，形成"主实验 + 延伸实验"的递进设计：</p>
+
+<table>
+<thead><tr><th>项目</th><th>主实验</th><th>延伸实验</th></tr></thead>
+<tbody>
+<tr><td>数据集编号</td><td>ERR15404827</td><td>DRR063436</td></tr>
+<tr><td>样本菌株</td><td>大肠杆菌 K-12 MG1655</td><td>大肠杆菌野生分离株</td></tr>
+<tr><td>测序平台</td><td>Illumina MiSeq</td><td>Illumina MiSeq</td></tr>
+<tr><td>读长</td><td>250 bp 双端</td><td>75 bp 双端</td></tr>
+<tr><td>测序数据量</td><td>约 124 Mb（约 49.7 万对读段）</td><td>约 18 Mb（约 12.4 万对读段）</td></tr>
+<tr><td>估算覆盖深度</td><td>约 27×</td><td>约 4×</td></tr>
+<tr><td>压缩数据大小</td><td>约 89 MB</td><td>约 13.6 MB</td></tr>
+<tr><td>参考基因组</td><td colspan="2">大肠杆菌 K-12 MG1655（RefSeq GCF_000005845.2）</td></tr>
+<tr><td>与参考的关系</td><td><strong>同源对照</strong>（几乎无真实变异）</td><td><strong>异源</strong>（存在真实 SNP）</td></tr>
+<tr><td>教学重点</td><td>完整流程 + 假阳性过滤 + 阴性对照思维</td><td>真实变异检出 + 深度对比</td></tr>
+</tbody>
+</table>
+<p style="text-align:center;color:var(--main);font-size:.88em">表 1.1：项目两套数据集的对比</p>
+
+<div class="box note"><span class="tag">数据方案说明</span>
+<p>主实验使用<strong>与参考基因组同源的 MG1655 样本</strong>（深度 27×，读长 250 bp），目的是：让初学者在"最干净、最可信"的条件下完整走通流程，并学会<strong>如何正确过滤假阳性</strong>——因为理论上同源重测序应检测到极少量真实变异，凡是大规模检出的"变异"多半是测序错误或比对错误。</p>
+<p>延伸实验改用<strong>野生分离株</strong>（深度 4×，读长 75 bp），与 MG1655 参考基因组之间真实存在单核苷酸多态性（SNP），学生可以观察到"真实变异"被检出的过程，并体会<strong>测序深度对变异检测的影响</strong>。</p>
+</div>
+
+<h3>1.4 预备知识要求</h3>
+<p>本项目面向本科二、三年级以上或具有同等基础的初学者，建议具备以下先修知识：</p>
+<ul>
+<li><strong>生物学基础</strong>：了解 DNA 双螺旋结构、碱基配对（A-T、C-G）、中心法则（DNA → RNA → 蛋白质）的基本概念；</li>
+<li><strong>计算机基础</strong>：会使用 Linux 基本命令（<code>cd</code>、<code>ls</code>、<code>mkdir</code>、<code>cp</code>、<code>mv</code>），了解绝对路径与相对路径的概念；</li>
+<li><strong>英语基础</strong>：能借助词典阅读软件帮助文档与数据库页面（本项目的命令与报错信息均为英文）。</li>
+</ul>
+
+<div class="box tip"><span class="tag">零基础也不要紧</span>
+<p>如果你从未接触过 Linux 命令行，建议在开始前花 2-3 小时完成一个 Linux 入门速成教程，重点掌握文件与目录操作、通配符、管道（<code>|</code>）与重定向（<code>&gt;</code>、<code>&gt;&gt;</code>）即可，本项目会在每个步骤给出完整的、可直接复制的命令。</p>
+</div>
+</section>
+
+<!-- ====================== 第二章 ====================== -->
+<section class="module" id="ch2">
+<h2>第二章 实验环境与软件清单</h2>
+
+<h3>2.1 硬件与系统要求</h3>
+<table>
+<thead><tr><th>项目</th><th>推荐配置</th></tr></thead>
+<tbody>
+<tr><td>操作系统</td><td>Linux（推荐 Ubuntu 20.04 及以上）或 macOS；Windows 建议使用 WSL2</td></tr>
+<tr><td>CPU</td><td>4 核及以上</td></tr>
+<tr><td>内存</td><td>8 GB 及以上</td></tr>
+<tr><td>硬盘</td><td>至少 20 GB 可用空间（软件环境 + 数据 + 中间文件）</td></tr>
+<tr><td>网络</td><td>可访问 NCBI/ENA 等国际数据库</td></tr>
+</tbody>
+</table>
+
+<div class="box warn"><span class="tag">Windows 用户特别注意</span>
+<p>生物信息学工具绝大多数为 Linux/macOS 原生命令行程序。Windows 用户强烈建议安装 <strong>WSL2（Ubuntu）</strong> 后再进行本项目。</p>
+</div>
+
+<h3>2.2 所需软件清单</h3>
+<p>所有软件均通过 <strong>conda</strong>（或更快的 <code>mamba</code>）统一安装。</p>
+<table>
+<thead><tr><th>软件</th><th>验证版本</th><th>用途</th><th>许可证</th></tr></thead>
+<tbody>
+<tr><td>Miniconda</td><td>24.x</td><td>包与环境管理器</td><td>BSD</td></tr>
+<tr><td>mamba</td><td>1.5.x</td><td>更快的 conda 替代品</td><td>BSD</td></tr>
+<tr><td>FastQC</td><td>0.12.1</td><td>测序数据质量评估</td><td>GPL</td></tr>
+<tr><td>fastp</td><td>0.23.4</td><td>质量过滤与修剪</td><td>MIT</td></tr>
+<tr><td>BWA</td><td>0.7.18</td><td>读段比对（BWA-MEM）</td><td>GPL</td></tr>
+<tr><td>samtools</td><td>1.20</td><td>SAM/BAM 处理与统计</td><td>MIT/BSD</td></tr>
+<tr><td>bcftools</td><td>1.20</td><td>变异检测与过滤</td><td>MIT/BSD</td></tr>
+<tr><td>SnpEff</td><td>5.2</td><td>变异功能注释</td><td>LGPL</td></tr>
+<tr><td>tabix</td><td>1.20</td><td>索引压缩的表格文件</td><td>MIT/BSD</td></tr>
+</tbody>
+</table>
+
+<h3>2.3 安装与环境配置</h3>
+
+<h4>2.3.1 安装 Miniconda</h4>
+<pre><code class="language-bash"># 下载 Miniconda 安装脚本
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+# 运行安装脚本
+bash Miniconda3-latest-Linux-x86_64.sh
+# 按提示操作：回车阅读协议 → 输入 yes 接受 → 回车确认安装路径 → 输入 yes 初始化</code></pre>
+<p>安装完成后关闭并重新打开终端（或执行 <code>source ~/.bashrc</code>），验证：</p>
+<pre><code class="language-bash">conda --version
+# 输出形如：conda 24.11.0</code></pre>
+
+<h4>2.3.2 配置 conda 源（可选但推荐）</h4>
+<pre><code class="language-bash"># 添加清华镜像
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+conda config --set show_channel_urls yes</code></pre>
+
+<div class="box note"><span class="tag">为什么需要 conda-forge 与 bioconda</span>
+<p>绝大多数生物信息学软件由社区维护在 <strong>Bioconda</strong> 频道中，而 Bioconda 又依赖 <strong>conda-forge</strong> 提供的基础库。因此，安装生信工具时必须同时配置这两个频道。</p>
+</div>
+
+<h4>2.3.3 创建独立的分析环境</h4>
+<pre><code class="language-bash">conda create -n bioinfo -y -c conda-forge -c bioconda \
+    mamba fastqc fastp bwa samtools bcftools snpeff tabix
+
+conda activate bioinfo
+
+bwa 2>&1 | head -1
+samtools --version | head -1
+bcftools --version | head -1</code></pre>
+
+<h4>2.3.4 下载 SnpEff 数据库</h4>
+<pre><code class="language-bash"># 查看可用的大肠杆菌数据库
+snpEff databases | grep -i coli | head
+
+# 下载 MG1655 (ASM584v2) 数据库
+snpEff download -v ASM584v2</code></pre>
+
+<div class="box warn"><span class="tag">SnpEff 数据库名可能变化</span>
+<p>不同 SnpEff 版本中，MG1655 数据库的命名可能略有差异。执行 <code>snpEff databases | grep -i "K-12"</code> 确认准确名称。</p>
+</div>
+
+<h3>2.4 项目目录结构</h3>
+<pre><code class="language-bash">mkdir -p ecoli_reseq/{data,ref,results/{qc,align,variants,annotation},scripts,report}
+cd ecoli_reseq
+tree -L 2   # 若未安装 tree 可省略</code></pre>
+
+<table>
+<thead><tr><th>目录</th><th>用途</th></tr></thead>
+<tbody>
+<tr><td><code>ecoli_reseq/</code></td><td>项目根目录</td></tr>
+<tr><td><code>data/</code></td><td>存放测序数据（FASTQ 文件）</td></tr>
+<tr><td><code>ref/</code></td><td>存放参考基因组及相关索引</td></tr>
+<tr><td><code>results/qc/</code></td><td>质控结果</td></tr>
+<tr><td><code>results/align/</code></td><td>比对结果（BAM 文件）</td></tr>
+<tr><td><code>results/variants/</code></td><td>变异检测结果（VCF 文件）</td></tr>
+<tr><td><code>results/annotation/</code></td><td>变异注释结果</td></tr>
+<tr><td><code>scripts/</code></td><td>存放分析脚本</td></tr>
+<tr><td><code>report/</code></td><td>存放最终分析报告</td></tr>
+</tbody>
+</table>
+
+<div class="box tip"><span class="tag">路径规范建议</span>
+<p><strong>始终使用相对路径或变量</strong>引用文件，避免在命令中写死绝对路径，这样脚本才能在不同电脑上通用。</p>
+</div>
+</section>
+
+<!-- ====================== 第三章 ====================== -->
+<section class="module" id="ch3">
+<h2>第三章 测序技术基础</h2>
+
+<div class="box knowledge"><span class="tag">本章导读</span>
+<p>在动手分析数据之前，理解"数据从何而来"至关重要。测序数据的质量特征、误差模式都直接决定了后续分析策略的选择。本章介绍 DNA 测序技术的发展脉络，并重点讲解本项目所使用的 Illumina 测序原理及其数据特征。</p>
+</div>
+
+<h3>3.1 DNA 测序技术简史</h3>
+<p>1977 年，Frederick Sanger 发明了链终止法测序（Sanger sequencing），奠定了现代 DNA 测序的基础。其核心原理是"双脱氧核苷酸终止"。Sanger 测序读长可达 800-1000 bp，准确率极高（>99.9%），但通量低。</p>
+
+<p>2005 年前后，以 Roche 454、Illumina（Solexa）、ABI SOLiD 为代表的第二代测序（NGS）技术相继问世。它们的共同特征是<strong>大规模并行化</strong>。其中 Illumina 平台凭借高通量、低成本、低错误率的综合优势，成为目前应用最广泛的测序平台。</p>
+
+<p>以 PacBio（SMRT）和 Oxford Nanopore（纳米孔测序）为代表的第三代测序，无需 PCR 扩增即可对单条 DNA 分子进行实时测序，读长可达数十 kb 甚至 Mb 级，但单碱基错误率相对较高。</p>
+
+<table>
+<thead><tr><th>代际</th><th>代表平台</th><th>读长</th><th>主要特点</th></tr></thead>
+<tbody>
+<tr><td>第一代</td><td>Sanger</td><td>800-1000 bp</td><td>准确率极高，通量低，成本高</td></tr>
+<tr><td>第二代</td><td>Illumina</td><td>50-300 bp</td><td>高通量、低成本、低错误率（&lt;1%）</td></tr>
+<tr><td>第三代</td><td>PacBio / Nanopore</td><td>10 kb-Mb 级</td><td>超长读长，错误率较高，实时测序</td></tr>
+</tbody>
+</table>
+
+<h3>3.2 Illumina 测序原理</h3>
+<p>本项目的数据由 Illumina MiSeq 平台产生，其测序过程可概括为"桥式扩增 + 边合成边测序"两大步骤。</p>
+
+<h4>3.2.1 文库制备</h4>
+<p>首先将基因组 DNA 随机打断为约几百 bp 的小片段（fragment），在片段两端连接上已知序列的<strong>接头（adapter）</strong>。</p>
+
+<h4>3.2.2 桥式 PCR 扩增（簇生成）</h4>
+<p>将文库加载到 flow cell 上，DNA 片段通过接头与芯片表面的互补寡核苷酸结合。随后进行"桥式 PCR"，最终形成由同一模板扩增而来的<strong>DNA 簇（cluster）</strong>。</p>
+
+<h4>3.2.3 边合成边测序（SBS）</h4>
+<ol>
+<li>与模板互补的 dNTP 被 DNA 聚合酶掺入；</li>
+<li>激发荧光，记录每个簇发出的颜色，据此判断该位置掺入的碱基；</li>
+<li>切除荧光基团与终止子，进入下一轮合成。</li>
+</ol>
+<p>如此循环，每次读出一个碱基，最终获得每个簇的序列，即一条<strong>测序读段（read）</strong>。</p>
+
+<h4>3.2.4 单端测序与双端测序</h4>
+<ul>
+<li><strong>单端测序（Single-end, SE）</strong>：只从 DNA 片段的一端开始测序，每条片段产生 1 条 read；</li>
+<li><strong>双端测序（Paired-end, PE）</strong>：先从片段一端测序，再翻转到另一端测序，每条片段产生 2 条 read（R1/R2）。</li>
+</ul>
+
+<div class="box note"><span class="tag">为什么双端测序更好？</span>
+<p>双端测序提供了额外的<strong>位置信息</strong>：两条 read 的相对位置与距离已知，能显著提高比对准确性（尤其是重复区、结构变异区），也有助于跨越短的重复序列。</p>
+</div>
+
+<h3>3.3 测序质量与 Phred 分数</h3>
+<p>测序仪在读碱基时会根据荧光信号强度等指标，为每个碱基赋予一个<strong>质量分数</strong>，用于衡量"该碱基被读错"的概率。质量分数通常用 <strong>Phred 分数</strong>（记作 Q）表示：</p>
+<p style="text-align:center"><em>Q = −10 log<sub>10</sub> P</em></p>
+
+<table>
+<thead><tr><th>Phred 分数</th><th>错误概率</th><th>准确率</th><th>常用标记</th></tr></thead>
+<tbody>
+<tr><td>Q10</td><td>10%</td><td>90%</td><td>低质量</td></tr>
+<tr><td>Q20</td><td>1%</td><td>99%</td><td>一般合格线</td></tr>
+<tr><td>Q30</td><td>0.1%</td><td>99.9%</td><td>高质量</td></tr>
+<tr><td>Q40</td><td>0.01%</td><td>99.99%</td><td>极高</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ====================== 第四章 ====================== -->
+<section class="module" id="ch4">
+<h2>第四章 核心生物信息学文件格式</h2>
+
+<div class="box knowledge"><span class="tag">本章导读</span>
+<p>文件格式是生物信息学的"通用语言"。掌握 FASTA、FASTQ、SAM/BAM、VCF 四种核心格式的结构，是阅读数据、排查问题、编写脚本的前提。</p>
+</div>
+
+<h3>4.1 FASTA 格式：序列的存储</h3>
+<p>FASTA 是最简单的序列存储格式。每条序列由两行或多行组成：第一行以 <code>&gt;</code> 开头，为<strong>描述行（header）</strong>；后续行为<strong>序列本身</strong>。</p>
+<pre><code class="language-bash">&gt;NC_000913.3 Escherichia coli str. K-12 substr. MG1655, complete genome
+AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGC
+TTCTGAACTGGTTACCTGCCGTGAGTAAATTAAAATTTTATTGACTTAGGTCACTAAATACTTTAACCAA</code></pre>
+
+<h3>4.2 FASTQ 格式：测序读段与质量</h3>
+<p>FASTQ 是存储测序读段及其质量分数的标准格式，每条 read 占据<strong>四行</strong>：</p>
+<ol>
+<li><strong>第 1 行（标识行）</strong>：以 <code>@</code> 开头，包含 read 的唯一标识符；</li>
+<li><strong>第 2 行（序列行）</strong>：碱基序列（A/T/C/G/N）；</li>
+<li><strong>第 3 行（分隔行）</strong>：以 <code>+</code> 开头；</li>
+<li><strong>第 4 行（质量行）</strong>：与第 2 行等长的质量字符。</li>
+</ol>
+<pre><code class="language-bash">@ERR15404827.1 1/1
+AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATT
++
+IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII</code></pre>
+
+<h3>4.3 SAM/BAM 格式：比对结果的存储</h3>
+<p>SAM（Sequence Alignment/Map）是存储"读段比对到参考基因组"结果的文本格式；BAM 是其二进制压缩版本。</p>
+
+<h4>4.3.1 SAM 的 11 个必选字段</h4>
+<table>
+<thead><tr><th>编号</th><th>字段名</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>QNAME</td><td>read 名称</td></tr>
+<tr><td>2</td><td>FLAG</td><td>位标志，记录比对状态</td></tr>
+<tr><td>3</td><td>RNAME</td><td>参考序列名</td></tr>
+<tr><td>4</td><td>POS</td><td>比对起始位置（1-based）</td></tr>
+<tr><td>5</td><td>MAPQ</td><td>比对质量分数</td></tr>
+<tr><td>6</td><td>CIGAR</td><td>描述比对细节的紧凑字符串</td></tr>
+<tr><td>7</td><td>RNEXT</td><td>mate 所在的参考序列名</td></tr>
+<tr><td>8</td><td>PNEXT</td><td>mate 的比对位置</td></tr>
+<tr><td>9</td><td>TLEN</td><td>模板（插入片段）长度</td></tr>
+<tr><td>10</td><td>SEQ</td><td>read 的碱基序列</td></tr>
+<tr><td>11</td><td>QUAL</td><td>read 的碱基质量</td></tr>
+</tbody>
+</table>
+
+<h4>4.3.2 CIGAR 常用操作符</h4>
+<table>
+<thead><tr><th>操作符</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td>M</td><td>匹配或错配</td></tr>
+<tr><td>I</td><td>插入</td></tr>
+<tr><td>D</td><td>缺失</td></tr>
+<tr><td>S</td><td>软剪切（保留在 SEQ 中）</td></tr>
+<tr><td>H</td><td>硬剪切（已从 SEQ 中移除）</td></tr>
+<tr><td>N</td><td>跳过参考序列上的区域（如内含子）</td></tr>
+</tbody>
+</table>
+
+<h3>4.4 VCF/BCF 格式：变异位点的存储</h3>
+<p>VCF（Variant Call Format）是存储遗传变异（SNP、插入缺失等）的标准格式。前 8 个固定字段含义：</p>
+<table>
+<thead><tr><th>字段</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td>CHROM</td><td>变异所在的参考序列名</td></tr>
+<tr><td>POS</td><td>变异位置（1-based）</td></tr>
+<tr><td>ID</td><td>变异标识符</td></tr>
+<tr><td>REF</td><td>参考等位基因</td></tr>
+<tr><td>ALT</td><td>变异等位基因</td></tr>
+<tr><td>QUAL</td><td>变异质量分数</td></tr>
+<tr><td>FILTER</td><td>过滤标记</td></tr>
+<tr><td>INFO</td><td>附加信息</td></tr>
+</tbody>
+</table>
+
+<p>FORMAT 与样本列常用字段：</p>
+<ul>
+<li><code>GT</code>：基因型（<code>0/1</code> 杂合，<code>1/1</code> 纯合变异）；</li>
+<li><code>DP</code>：该位点的测序深度；</li>
+<li><code>AD</code>：各等位基因的 read 深度。</li>
+</ul>
+</section>
+
+<!-- ====================== 第五章 ====================== -->
+<section class="module" id="ch5">
+<h2>第五章 核心算法原理</h2>
+
+<div class="box knowledge"><span class="tag">本章导读</span>
+<p>"知其然，更要知其所以然。"理解工具背后的算法思想，才能正确选择参数、合理解读结果、在出问题时做出正确判断。</p>
+</div>
+
+<h3>5.1 序列比对算法</h3>
+<h4>5.1.1 BWT 与 FM-index</h4>
+<p>BWA 的核心是基于 <strong>Burrows-Wheeler 变换（BWT）</strong> 和 <strong>FM-index</strong> 构建的全文索引。其思想：</p>
+<ol>
+<li>将参考基因组的所有"循环移位"按字典序排序，取每行最后一列，得到 BWT 字符串。这个变换是<strong>可逆的</strong>；</li>
+<li>FM-index 在 BWT 上支持"<strong>反向搜索（backward search）</strong>"，可在 O(m) 时间内（m 为 read 长度）快速定位某个短序列在参考基因组中的所有出现位置；</li>
+<li>比对一条 read 时，BWA 从 read 末端开始逐碱基"反向搜索"，一旦发现不匹配，立即回溯。</li>
+</ol>
+
+<h4>5.1.2 seed-and-extend 策略</h4>
+<p>BWA-MEM 采用"种子-扩展"（seed-and-extend）策略：</p>
+<ol>
+<li><strong>种子查找</strong>：从 read 中提取若干短的"种子"，利用 FM-index 快速找到候选位置；</li>
+<li><strong>链化（chaining）</strong>：将同一条 read 的多个种子候选位置"串联"成可能的一致比对；</li>
+<li><strong>扩展（extension）</strong>：对每个候选位置，用 Smith-Waterman 局部比对算法向两端扩展。</li>
+</ol>
+
+<h4>5.1.3 比对质量 MAPQ</h4>
+<p>MAPQ（mapping quality）是 BWA 为每条 read 赋予的"比对可信度"（Phred 尺度）：</p>
+<p style="text-align:center"><em>MAPQ = −10 log<sub>10</sub> P(比对位置错误)</em></p>
+<p>当一条 read 能比对到多个位置（如重复区）时，MAPQ 会很低（如 0）。</p>
+
+<h3>5.2 变异检测算法</h3>
+<p>本项目使用的 <code>bcftools mpileup + call</code> 采用"堆积 → 基因型似然 → 变异判定"三步策略。</p>
+
+<h4>5.2.1 pileup 堆积</h4>
+<p><code>mpileup</code> 将 BAM 文件中覆盖同一基因组位置的所有 read 的碱基"堆积"在一起，记录每个位置 A/C/G/T 各有多少条 read 支持。</p>
+
+<h4>5.2.2 计算基因型似然</h4>
+<p>对每个候选位点，基于观测到的碱基堆积，计算不同基因型假设下的<strong>似然（likelihood）</strong>。</p>
+
+<h4>5.2.3 贝叶斯后验与输出</h4>
+<p>实际算法会结合<strong>先验概率</strong>（如 SNP 的先验概率约 10<sup>−3</sup>）与似然，用贝叶斯公式计算<strong>后验概率</strong>：</p>
+<p style="text-align:center"><em>QUAL = −10 log<sub>10</sub> P(该位置不是变异)</em></p>
+
+<div class="box note"><span class="tag">为什么需要先验概率？</span>
+<p>先验概率的作用是<strong>抑制假阳性</strong>。如果某个位点只有 1-2 条低质量 read 支持一个"变异"，那么这更可能是测序错误而非真实变异。引入先验后，这类情况的后验概率很低，不会被判定为变异。</p>
+</div>
+
+<h3>5.3 测序深度与覆盖度</h3>
+<p><strong>测序深度</strong> = 测序数据总量 / 基因组大小。</p>
+<table>
+<thead><tr><th>深度</th><th>对变异检测的影响</th></tr></thead>
+<tbody>
+<tr><td>&lt;5×</td><td>漏检严重，检出的变异也不可靠</td></tr>
+<tr><td>5-10×</td><td>可检出纯合变异，杂合变异可靠性差</td></tr>
+<tr><td>10-30×</td><td>常见研究标准，纯合与杂合变异均较可靠</td></tr>
+<tr><td>&gt;30×</td><td>高深度，可检出低频变异</td></tr>
+</tbody>
+</table>
+
+<div class="box tip"><span class="tag">本项目如何体现深度的影响</span>
+<p>主实验（27×）与延伸实验（4×）形成天然对照：前者变异检测结果可信、假阳性少；后者将观察到大量低深度位点与更高的假阳性率。</p>
+</div>
+</section>
+
+<!-- ====================== 第六章 ====================== -->
+<section class="module" id="ch6">
+<h2>第六章 模块 1：数据获取</h2>
+
+<div class="box knowledge"><span class="tag">模块目标</span>
+<p>本模块将完成两项任务：<strong>(1) 下载参考基因组</strong>；<strong>(2) 下载测序数据</strong>，并对下载的文件进行完整性校验。</p>
+</div>
+
+<h3>6.1 背景知识：公共生物信息学数据库</h3>
+<p>全球三大核酸序列数据库——<strong>GenBank</strong>（NCBI）、<strong>ENA</strong>（EBI）、<strong>DDBJ</strong>——共同组成国际核苷酸序列数据库协作联盟（INSDC）：</p>
+<table>
+<thead><tr><th>数据库</th><th>所属机构</th><th>访问号前缀示例</th></tr></thead>
+<tbody><tr><td>GenBank / SRA</td><td>美国 NCBI</td><td>SRR、SAMN</td></tr>
+<tr><td>ENA</td><td>欧洲 EBI</td><td>ERR、SAMEA</td></tr>
+<tr><td>DDBJ SRA</td><td>日本 DDBJ</td><td>DRR、SAMD</td></tr></tbody>
+</table>
+
+<div class="box tip"><span class="tag">本项目数据来自哪里？</span>
+<p>主实验数据 <code>ERR15404827</code> 属于 ENA；延伸实验数据 <code>DRR063436</code> 属于 DDBJ。但二者都已同步到 ENA，因此<strong>统一从 ENA 下载</strong>即可。</p>
+</div>
+
+<h3>6.2 实验步骤</h3>
+
+<h4>6.2.1 步骤 1：创建目录结构</h4>
+<pre><code class="language-bash">mkdir -p ~/ecoli_reseq/{data,ref,results/{qc,align,variants,annotation},scripts,report}
+cd ~/ecoli_reseq</code></pre>
+
+<h4>6.2.2 步骤 2：下载参考基因组</h4>
+<pre><code class="language-bash">cd ref
+
+wget -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/005/845/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.fna.gz
+wget -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/005/845/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.gff.gz
+
+gunzip GCF_000005845.2_ASM584v2_genomic.fna.gz
+
+ls -lh</code></pre>
+
+<div class="box note"><span class="tag"><code>-c</code> 参数的作用</span>
+<p><code>wget -c</code>（<code>--continue</code>）支持<strong>断点续传</strong>：若下载中断，再次执行同一命令会从断点继续，而非重新开始。</p>
+</div>
+
+<h4>6.2.3 步骤 3：查看参考基因组</h4>
+<pre><code class="language-bash">grep "^>" GCF_000005845.2_ASM584v2_genomic.fna
+grep -v "^>" GCF_000005845.2_ASM584v2_genomic.fna | tr -d '\n' | wc -c</code></pre>
+<p>预期输出：</p>
+<pre><code class="language-bash">&gt;NC_000913.3 Escherichia coli str. K-12 substr. MG1655, complete genome
+4641652</code></pre>
+
+<h4>6.2.4 步骤 4：下载测序数据</h4>
+<pre><code class="language-bash">cd ../data
+
+wget -c https://ftp.sra.ebi.ac.uk/vol1/fastq/ERR154/027/ERR15404827/ERR15404827_1.fastq.gz
+wget -c https://ftp.sra.ebi.ac.uk/vol1/fastq/ERR154/027/ERR15404827/ERR15404827_2.fastq.gz
+
+ls -lh</code></pre>
+
+<div class="box note"><span class="tag">如何构造 ENA 下载链接？</span>
+<p>ENA 的 FASTQ 下载链接遵循固定规则：<code>https://ftp.sra.ebi.ac.uk/vol1/fastq/</code> + 访问号前 6 位 + <code>/</code> + 完整访问号 + <code>/</code> + 访问号 + 后缀。</p>
+</div>
+
+<h4>6.2.5 步骤 5：数据完整性校验</h4>
+<pre><code class="language-bash"># 计算本地文件的 MD5 值
+md5sum ERR15404827_1.fastq.gz ERR15404827_2.fastq.gz</code></pre>
+<pre><code class="language-bash"># 获取 ENA 官方 MD5 校验值
+curl -s "https://www.ebi.ac.uk/ena/portal/api/filereport?accession=ERR15404827&result=read_run&fields=run_accession,fastq_md5&format=tsv"</code></pre>
+<p>将<strong>本地计算的 MD5</strong> 与 <strong>ENA 官方提供的 MD5</strong> 逐字符比对，完全一致即表示文件完整无损。</p>
+
+<h3>6.3 思考题</h3>
+<div class="box exercise"><span class="tag">思考题 1</span>
+<p>为什么参考基因组的 FASTA 文件在解压前是 <code>.gz</code> 压缩格式？这种压缩对生物信息学数据分析有什么意义？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 2</span>
+<p><code>ERR15404827</code> 的 R1 与 R2 两个文件分别代表什么？如果只下载了 R1 而遗漏 R2，对后续分析会有什么影响？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 3</span>
+<p>MD5 校验和的作用是什么？你下载的文件 MD5 与官方不一致，可能的原因有哪些？</p>
+</div>
+</section>
+
+<!-- ====================== 第七章 ====================== -->
+<section class="module" id="ch7">
+<h2>第七章 模块 2：测序数据质量控制</h2>
+
+<div class="box knowledge"><span class="tag">模块目标</span>
+<p>本模块将对原始测序数据进行质量评估（FastQC）与过滤修剪（fastp），去除低质量碱基、接头污染与过短读段，为后续比对提供高质量的输入数据。</p>
+</div>
+
+<h3>7.1 背景知识：为什么要做质量控制？</h3>
+<p>原始测序数据中存在的"噪音"包括：测序错误、接头污染、低质量碱基、PCR 重复。</p>
+
+<div class="box note"><span class="tag">核心原则：垃圾进，垃圾出</span>
+<p>下游分析的结论质量永远不可能超过输入数据的质量。<strong>质控是生信分析中投入产出比最高的一步</strong>，务必认真对待。</p>
+</div>
+
+<h3>7.2 实验步骤</h3>
+
+<h4>7.2.1 步骤 1：使用 FastQC 评估</h4>
+<pre><code class="language-bash">fastqc -t 4 -o results/qc/ \
+  data/ERR15404827_1.fastq.gz \
+  data/ERR15404827_2.fastq.gz</code></pre>
+<p>生成 <code>.html</code> 报告与 <code>.zip</code> 原始数据。</p>
+
+<h4>7.2.2 步骤 2：解读 FastQC 报告</h4>
+<p>重点查看：碱基质量、碱基 GC 含量、接头污染、重复水平、重复序列等指标。FastQC 用绿/黄/红三色标记各项指标。</p>
+
+<div class="box knowledge"><span class="tag">大肠杆菌的 GC 含量</span>
+<p>大肠杆菌基因组的 GC 含量约 50.8%。FastQC 的 GC 含量图应呈现一个以 50% 为中心的较窄分布峰。</p>
+</div>
+
+<h4>7.2.3 步骤 3：使用 fastp 过滤与修剪</h4>
+<pre><code class="language-bash">fastp \
+  -i data/ERR15404827_1.fastq.gz \
+  -I data/ERR15404827_2.fastq.gz \
+  -o results/qc/ERR15404827_1.clean.fastq.gz \
+  -O results/qc/ERR15404827_2.clean.fastq.gz \
+  --html results/qc/fastp.html \
+  --json results/qc/fastp.json \
+  --thread 4 \
+  --qualified_quality_phred 20 \
+  --unqualified_percent_limit 40 \
+  --length_required 50 \
+  --cut_front --cut_tail</code></pre>
+
+<table>
+<thead><tr><th>参数</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td><code>-i / -I</code></td><td>输入的 R1 / R2 文件</td></tr>
+<tr><td><code>-o / -O</code></td><td>输出的 R1 / R2 文件</td></tr>
+<tr><td><code>--qualified_quality_phred 20</code></td><td>合格碱基的质量阈值</td></tr>
+<tr><td><code>--length_required 50</code></td><td>过滤后长度小于 50 bp 的 read 丢弃</td></tr>
+<tr><td><code>--cut_front / --cut_tail</code></td><td>从 read 前端/末端滑动窗口修剪低质量碱基</td></tr>
+</tbody>
+</table>
+
+<h4>7.2.4 步骤 4：查看 fastp 报告与统计</h4>
+<pre><code class="language-bash">python3 -c "
+import json
+d = json.load(open('results/qc/fastp.json'))
+s = d['summary']
+for k in ['before_filtering','after_filtering']:
+    x = s[k]
+    print(k, '-> total_reads:', x['total_reads'],
+          '| q30_rate: %.2f%%' % (x['q30_rate']*100))
+"</code></pre>
+
+<div class="box knowledge"><span class="tag">理解过滤统计</span>
+<p>优质 Illumina 数据的 Q30 率通常在 85-95% 之间。对比 before/after 可直观看到过滤提升了多少数据质量。</p>
+</div>
+
+<h3>7.3 思考题</h3>
+<div class="box exercise"><span class="tag">思考题 1</span>
+<p>FastQC 报告显示某数据末端质量骤降到 Q10 以下，这说明什么？fastp 的哪个参数可以处理这一问题？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 2</span>
+<p>为什么过滤后的读段总数通常略少于过滤前？如果损失超过 30%，可能意味着什么？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 3</span>
+<p>"接头污染"是如何产生的？为什么它主要出现在 read 的末端而不是开头？</p>
+</div>
+</section>
+
+<!-- ====================== 第八章 ====================== -->
+<section class="module" id="ch8">
+<h2>第八章 模块 3：序列比对</h2>
+
+<div class="box knowledge"><span class="tag">模块目标</span>
+<p>使用 BWA-MEM 把经过质控的测序读段比对到参考基因组上，回答"每条 read 来自基因组的哪个位置"。</p>
+</div>
+
+<h3>8.1 背景知识：什么是序列比对</h3>
+<p>序列比对是生物信息学最核心的操作之一。任务是：给定一条短测序读段和一个参考基因组，确定该读段<strong>最可能来自参考基因组的哪个位置</strong>。</p>
+
+<h3>8.2 实验步骤</h3>
+
+<h4>8.2.1 步骤 1：为参考基因组建立索引</h4>
+<pre><code class="language-bash">bwa index ref/GCF_000005845.2_ASM584v2_genomic.fna
+samtools faidx ref/GCF_000005845.2_ASM584v2_genomic.fna</code></pre>
+
+<div class="box knowledge"><span class="tag">BWA 索引 vs. samtools 索引</span>
+<p>二者不可混用：<strong>BWA 索引</strong>基于 BWT/FM-index，供 BWA 比对使用；<strong>samtools 的 FASTA 索引</strong>（<code>.fai</code>）记录每条序列的名称、长度与偏移量。</p>
+</div>
+
+<h4>8.2.2 步骤 2：使用 BWA-MEM 进行比对</h4>
+<pre><code class="language-bash">bwa mem -t 4 \
+  ref/GCF_000005845.2_ASM584v2_genomic.fna \
+  results/qc/ERR15404827_1.clean.fastq.gz \
+  results/qc/ERR15404827_2.clean.fastq.gz \
+  > results/align/ERR15404827.sam</code></pre>
+
+<h4>8.2.3 步骤 3：查看 SAM 文件</h4>
+<pre><code class="language-bash">samtools view -H results/align/ERR15404827.sam | head -10
+samtools view results/align/ERR15404827.sam | head -5</code></pre>
+
+<h4>8.2.4 步骤 4：评估比对结果</h4>
+<pre><code class="language-bash">samtools flagstat results/align/ERR15404827.sam</code></pre>
+<p>关注<strong>比对率</strong>（mapped）与<strong>正确配对比率</strong>（properly paired）。对同源重测序，比对率通常应 >99%，properly paired >95%。</p>
+
+<h3>8.3 思考题</h3>
+<div class="box exercise"><span class="tag">思考题 1</span>
+<p>为什么 BWA 要先"建索引"再比对？请从计算复杂度角度思考。</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 2</span>
+<p>SAM 文件的 FLAG 字段值为 99，请拆解它表示的含义。</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 3</span>
+<p>MAPQ（比对质量）为 0 意味着什么？为什么变异检测中通常要过滤掉 MAPQ 低的 read？</p>
+</div>
+</section>
+
+<!-- ====================== 第九章 ====================== -->
+<section class="module" id="ch9">
+<h2>第九章 模块 4：比对后处理</h2>
+
+<div class="box knowledge"><span class="tag">模块目标</span>
+<p>对 SAM 比对结果进行格式转换、排序、去除 PCR 重复、建立索引，并统计比对质量、测序深度与覆盖度。</p>
+</div>
+
+<h3>9.1 背景知识</h3>
+<p>BWA 输出的 SAM 存在三个问题：文件巨大且低效、无序、含 PCR 重复。</p>
+
+<h3>9.2 实验步骤</h3>
+
+<h4>9.2.1 步骤 1：SAM 转换为 BAM</h4>
+<pre><code class="language-bash">samtools view -bS results/align/ERR15404827.sam \
+  -o results/align/ERR15404827.bam</code></pre>
+
+<h4>9.2.2 步骤 2：按坐标排序</h4>
+<pre><code class="language-bash">samtools sort -@ 4 results/align/ERR15404827.bam \
+  -o results/align/ERR15404827.sorted.bam</code></pre>
+
+<h4>9.2.3 步骤 3：标记 mate 信息</h4>
+<pre><code class="language-bash">samtools fixmate -m results/align/ERR15404827.sorted.bam \
+  results/align/ERR15404827.fixmate.bam</code></pre>
+
+<h4>9.2.4 步骤 4：再次排序</h4>
+<pre><code class="language-bash">samtools sort -@ 4 results/align/ERR15404827.fixmate.bam \
+  -o results/align/ERR15404827.fixmate.sorted.bam</code></pre>
+
+<h4>9.2.5 步骤 5：去除 PCR 重复</h4>
+<pre><code class="language-bash">samtools markdup results/align/ERR15404827.fixmate.sorted.bam \
+  results/align/ERR15404827.dedup.bam</code></pre>
+
+<h4>9.2.6 步骤 6：建立 BAM 索引</h4>
+<pre><code class="language-bash">samtools index results/align/ERR15404827.dedup.bam</code></pre>
+
+<h4>9.2.7 步骤 7：比对统计</h4>
+<pre><code class="language-bash">samtools flagstat results/align/ERR15404827.dedup.bam
+samtools stats results/align/ERR15404827.dedup.bam > results/align/stats.txt
+samtools coverage results/align/ERR15404827.dedup.bam</code></pre>
+
+<h4>9.2.8 步骤 8：计算深度分布</h4>
+<pre><code class="language-bash">samtools depth -a results/align/ERR15404827.dedup.bam \
+  > results/align/depth.txt
+
+awk '{s+=$3; if($3>0) c++} END{print "平均深度(含0):", s/NR; print "覆盖位点平均深度:", s/c; print "覆盖度:", c/NR*100"%"}' \
+  results/align/depth.txt</code></pre>
+
+<div class="box knowledge"><span class="tag">深度统计</span>
+<p>对主实验（27×），平均深度应接近 27；覆盖度（≥1× 的位点占比）通常 >99.5%。</p>
+</div>
+
+<h3>9.3 思考题</h3>
+<div class="box exercise"><span class="tag">思考题 1</span>
+<p>为什么要对 BAM 按坐标排序？如果不排序，<code>markdup</code> 和变异检测会怎样？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 2</span>
+<p>PCR 重复与"生物学重复"有何本质区别？为什么要去除 PCR 重复而不是保留它们来"增加深度"？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 3</span>
+<p>主实验的预期平均深度约 27×。请用"数据量/基因组大小"估算一次并与 <code>samtools coverage</code> 实际值对比。</p>
+</div>
+</section>
+
+<!-- ====================== 第十章 ====================== -->
+<section class="module" id="ch10">
+<h2>第十章 模块 5：变异检测</h2>
+
+<div class="box knowledge"><span class="tag">模块目标</span>
+<p>本模块是整个项目的核心。我们将综合所有覆盖到每个基因组位置的 read 信息，使用 bcftools 检测单核苷酸多态性（SNP）与插入缺失（InDel），并对变异结果进行质量过滤与统计解读。</p>
+</div>
+
+<h3>10.1 背景知识：变异检测的两步流程</h3>
+<p>本项目使用的 <code>bcftools</code> 将变异检测拆分为两个可组合的步骤：</p>
+<ol>
+<li><strong>mpileup（堆积）</strong>：将覆盖同一位置的 read 堆积，统计 A/C/G/T 支持数与质量；</li>
+<li><strong>call（判定）</strong>：计算不同基因型假设的似然，结合先验概率做贝叶斯判定。</li>
+</ol>
+
+<h3>10.2 实验步骤</h3>
+
+<h4>10.2.1 步骤 1：变异检测</h4>
+<pre><code class="language-bash">bcftools mpileup --ploidy 1 \
+  -f ref/GCF_000005845.2_ASM584v2_genomic.fna \
+  results/align/ERR15404827.dedup.bam | \
+bcftools call -mv -Ov \
+  -o results/variants/ERR15404827.raw.vcf</code></pre>
+
+<div class="box knowledge"><span class="tag">为什么要指定 ploidy？</span>
+<p>大肠杆菌是<strong>单倍体</strong>。指定 <code>--ploidy 1</code> 使基因型判定更符合生物学实际。</p>
+</div>
+
+<h4>10.2.2 步骤 2：查看原始 VCF</h4>
+<pre><code class="language-bash">grep -vc "^#" results/variants/ERR15404827.raw.vcf
+bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%DP\n' \
+  results/variants/ERR15404827.raw.vcf | head -10</code></pre>
+
+<h4>10.2.3 步骤 3：变异质量过滤</h4>
+<pre><code class="language-bash">bcftools filter \
+  -i 'QUAL >= 30 && DP >= 10' \
+  results/variants/ERR15404827.raw.vcf \
+  -o results/variants/ERR15404827.filtered.vcf
+
+grep -vc "^#" results/variants/ERR15404827.filtered.vcf</code></pre>
+
+<div class="box note"><span class="tag">过滤参数是"艺术"也是"科学"</span>
+<p>过严会漏掉真实变异（假阴性），过松会混入假阳性。建议<strong>尝试多组过滤参数</strong>（如 DP≥5/10/20、QUAL≥20/30/60），观察变异数量变化。</p>
+</div>
+
+<h4>10.2.4 步骤 4：变异统计</h4>
+<pre><code class="language-bash">bcftools stats results/variants/ERR15404827.filtered.vcf \
+  > results/variants/stats.txt
+grep -E "SN|number of" results/variants/stats.txt | head -30</code></pre>
+
+<div class="box knowledge"><span class="tag">转换/颠换比（Ts/Tv）</span>
+<p>真实生物变异中转换多于颠换，Ts/Tv 比值通常在 2-3 左右。若过滤后 Ts/Tv 异常（如 &lt;1），往往提示仍有大量假阳性。</p>
+</div>
+
+<h4>10.2.5 步骤 5：解读主实验的"近乎零变异"结果</h4>
+<div class="box knowledge"><span class="tag">最重要的科学收获</span>
+<p>主实验的样本与参考基因组<strong>同为 MG1655</strong>，理论上应完全一致。因此过滤后你很可能得到<strong>极少量甚至 0 个变异</strong>——这并非"实验失败"，恰恰是<strong>正确的科学结论</strong>！它验证了：</p>
+<ol>
+<li>分析流程本身没有系统性引入大量假阳性；</li>
+<li>过滤策略有效地去除了测序/比对错误产生的噪音；</li>
+<li>变异检测的意义在于"区分真实信号与背景噪音"，而不是"找到越多越好"。</li>
+</ol>
+</div>
+
+<h3>10.3 思考题</h3>
+<div class="box exercise"><span class="tag">思考题 1</span>
+<p>VCF 中 QUAL 字段与 FASTQ 中碱基质量（Phred 分数）有什么联系与区别？二者分别衡量"什么出错"的概率？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 2</span>
+<p>为什么过滤条件要同时考虑 QUAL 和 DP？只用一个条件会有什么问题？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 3</span>
+<p>若把过滤条件改为 <code>DP &gt;= 20 &amp;&amp; QUAL &gt;= 60</code>，变异数量如何变化？结合"假阳性 vs 假阴性"的权衡解释。</p>
+</div>
+</section>
+
+<!-- ====================== 第十一章 ====================== -->
+<section class="module" id="ch11">
+<h2>第十一章 模块 6：变异注释与功能解读</h2>
+
+<div class="box knowledge"><span class="tag">模块目标</span>
+<p>使用 SnpEff 对过滤后的变异进行功能注释，判断每个变异落在基因组的什么位置（基因间区、编码区等），以及是否改变蛋白质序列。</p>
+</div>
+
+<h3>11.1 背景知识：为什么要注释变异</h3>
+<p>变异检测得到的 VCF 只是一个"位置 + 碱基变化"的列表。<strong>变异注释</strong>就是为每个变异补充其功能信息。</p>
+
+<h3>11.2 实验步骤</h3>
+
+<h4>11.2.1 步骤 1：运行 SnpEff 注释</h4>
+<pre><code class="language-bash">snpEff -v ASM584v2 \
+  results/variants/ERR15404827.filtered.vcf \
+  > results/annotation/ERR15404827.ann.vcf</code></pre>
+
+<h4>11.2.2 步骤 2：查看注释结果</h4>
+<pre><code class="language-bash">bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/ANN\n' \
+  results/annotation/ERR15404827.ann.vcf | head -10</code></pre>
+
+<h4>11.2.3 步骤 3：理解 ANN 字段</h4>
+<table>
+<thead><tr><th>子字段（位置）</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td>Allele（第 1 个）</td><td>被注释的变异等位基因</td></tr>
+<tr><td>Annotation（第 2 个）</td><td>变异类型（如 missense_variant）</td></tr>
+<tr><td>Gene Name（第 4 个）</td><td>基因名（如 lacZ）</td></tr>
+<tr><td>Gene ID（第 5 个）</td><td>基因编号</td></tr>
+</tbody>
+</table>
+
+<h4>11.2.4 步骤 4：变异类型分类统计</h4>
+<pre><code class="language-bash">bcftools query -f '%INFO/ANN\n' \
+  results/annotation/ERR15404827.ann.vcf \
+  | cut -d'|' -f2 | sort | uniq -c | sort -rn</code></pre>
+
+<table>
+<thead><tr><th>变异类型</th><th>含义</th></tr></thead>
+<tbody>
+<tr><td>同义突变（synonymous）</td><td>密码子改变但编码的氨基酸不变</td></tr>
+<tr><td>错义突变（missense）</td><td>密码子改变导致氨基酸改变</td></tr>
+<tr><td>无义突变（nonsense）</td><td>密码子变为终止密码子，蛋白提前截断</td></tr>
+<tr><td>移码突变（frameshift）</td><td>插入/缺失导致读框移位</td></tr>
+<tr><td>基因间区（intergenic）</td><td>位于基因之间的非编码区</td></tr>
+</tbody>
+</table>
+
+<h3>11.3 思考题</h3>
+<div class="box exercise"><span class="tag">思考题 1</span>
+<p>同义突变为什么不改变氨基酸？这体现了遗传密码的什么特性？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 2</span>
+<p>错义突变与无义突变哪个对蛋白质功能的影响通常更大？为什么？</p>
+</div>
+<div class="box exercise"><span class="tag">思考题 3</span>
+<p>基因间区的变异为什么通常比编码区的变异更"容忍"？这对理解进化有什么启发？</p>
+</div>
+</section>
+
+<!-- ====================== 第十二章 ====================== -->
+<section class="module" id="ch12">
+<h2>第十二章 模块 7：结果汇总与延伸实验</h2>
+
+<div class="box knowledge"><span class="tag">模块目标</span>
+<p>本模块将前六个模块的成果汇总为一份规范的分析报告，并通过一个"野生分离株"的延伸实验，对比不同菌株、不同深度条件下的变异检测结果。</p>
+</div>
+
+<h3>12.1 步骤 1：汇总主实验关键结果</h3>
+<table>
+<thead><tr><th>指标</th><th>数值</th><th>来源命令</th></tr></thead>
+<tbody>
+<tr><td>原始 read 对数</td><td>约 49.7 万</td><td>fastp 报告</td></tr>
+<tr><td>质控后 read 对数</td><td>记录</td><td>fastp 报告</td></tr>
+<tr><td>Q30 比例</td><td>记录</td><td>fastp 报告</td></tr>
+<tr><td>比对率</td><td>记录</td><td><code>samtools flagstat</code></td></tr>
+<tr><td>平均测序深度</td><td>记录</td><td><code>samtools coverage</code></td></tr>
+<tr><td>原始变异数</td><td>记录</td><td><code>grep -vc "#" raw.vcf</code></td></tr>
+<tr><td>过滤后变异数</td><td>记录</td><td><code>grep -vc "#" filtered.vcf</code></td></tr>
+</tbody>
+</table>
+
+<h3>12.2 步骤 2：撰写分析报告</h3>
+<p>分析报告结构：标题与摘要、数据与方法、结果、讨论、结论。</p>
+
+<div class="box tip"><span class="tag">可复现性原则</span>
+<p>报告中务必<strong>记录所有软件版本</strong>与<strong>关键参数</strong>，这是分析可复现、结果可信赖的基础。</p>
+</div>
+
+<h3>12.3 步骤 3：延伸实验——野生分离株分析</h3>
+
+<h4>12.3.1 延伸实验数据下载</h4>
+<pre><code class="language-bash">wget -c https://ftp.sra.ebi.ac.uk/vol1/fastq/DRR063/DRR063436/DRR063436_1.fastq.gz
+wget -c https://ftp.sra.ebi.ac.uk/vol1/fastq/DRR063/DRR063436/DRR063436_2.fastq.gz
+
+md5sum DRR063436_1.fastq.gz DRR063436_2.fastq.gz</code></pre>
+
+<h4>12.3.2 延伸实验完整流程</h4>
+<p>流程与主实验<strong>完全一致</strong>，只需将文件名 <code>ERR15404827</code> 替换为 <code>DRR063436</code>。</p>
+<pre><code class="language-bash">fastp \
+  -i data/DRR063436_1.fastq.gz \
+  -I data/DRR063436_2.fastq.gz \
+  -o results/qc/DRR063436_1.clean.fastq.gz \
+  -O results/qc/DRR063436_2.clean.fastq.gz \
+  --html results/qc/fastp_DRR063436.html \
+  --json results/qc/fastp_DRR063436.json \
+  --thread 4 \
+  --qualified_quality_phred 20 \
+  --unqualified_percent_limit 40 \
+  --length_required 40</code></pre>
+
+<div class="box warn"><span class="tag">延伸实验的关键差异</span>
+<p>野生株 DRR063436 与参考 MG1655 之间<strong>真实存在大量 SNP</strong>。你将检测到数千乃至上万个变异——与主实验"接近零变异"形成鲜明对比。</p>
+</div>
+
+<h3>12.4 步骤 4：对比分析与讨论</h3>
+<table>
+<thead><tr><th>指标</th><th>主实验（MG1655，27×）</th><th>延伸实验（野生株，4×）</th></tr></thead>
+<tbody>
+<tr><td>过滤前变异数</td><td>记录</td><td>记录</td></tr>
+<tr><td>过滤后变异数</td><td>记录</td><td>记录</td></tr>
+<tr><td>Ts/Tv 比值</td><td>记录</td><td>记录</td></tr>
+<tr><td>错义突变数</td><td>记录</td><td>记录</td></tr>
+<tr><td>同义突变数</td><td>记录</td><td>记录</td></tr>
+</tbody>
+</table>
+
+<div class="box knowledge"><span class="tag">讨论要点</span>
+<ol>
+<li>为什么延伸实验检测到大量变异，而主实验几乎为零？</li>
+<li>两个数据集的 Ts/Tv 比值有何差异？低深度数据的 Ts/Tv 是否更偏离理论值？</li>
+<li>4× 深度下过滤参数应如何调整？</li>
+<li>结合本项目，谈谈"测序深度是变异检测质量的基石"的理解。</li>
+</ol>
+</div>
+
+<h3>12.5 项目总结</h3>
+<div style="text-align:center;background:#f4f8fc;border:1.5px solid var(--main);padding:14px;border-radius:6px;margin:1em 0">
+<strong>数据获取 → 质量控制 → 序列比对 → 比对后处理 → 变异检测 → 变异注释 → 结果解读</strong>
+</div>
+
+<div class="box tip"><span class="tag">进一步学习建议</span>
+<ul>
+<li>学习 GATK——人类/二倍体基因组变异检测的行业标准；</li>
+<li>学习 RNA-seq 分析流程（比对、定量、差异表达）；</li>
+<li>学习 Snakemake / Nextflow 等工作流语言，将流程自动化；</li>
+<li>学习 Python/R 数据可视化，提升结果呈现能力。</li>
+</ul>
+</div>
+</section>
+
+<!-- ====================== 附录 A ====================== -->
+<section class="module" id="appA">
+<h2>附录 A 软件与环境清单汇总</h2>
+
+<h3>A.1 完整软件清单</h3>
+<table>
+<thead><tr><th>软件</th><th>版本</th><th>用途</th><th>所属频道</th></tr></thead>
+<tbody>
+<tr><td>Miniconda</td><td>24.x</td><td>环境管理器</td><td>官方安装脚本</td></tr>
+<tr><td>mamba</td><td>1.5.x</td><td>快速包管理</td><td>conda-forge</td></tr>
+<tr><td>FastQC</td><td>0.12.1</td><td>质量评估</td><td>bioconda</td></tr>
+<tr><td>fastp</td><td>0.23.4</td><td>质量过滤</td><td>bioconda</td></tr>
+<tr><td>BWA</td><td>0.7.18</td><td>序列比对</td><td>bioconda</td></tr>
+<tr><td>samtools</td><td>1.20</td><td>BAM 处理</td><td>bioconda</td></tr>
+<tr><td>bcftools</td><td>1.20</td><td>变异检测</td><td>bioconda</td></tr>
+<tr><td>SnpEff</td><td>5.2</td><td>变异注释</td><td>bioconda</td></tr>
+<tr><td>tabix</td><td>1.20</td><td>表格索引</td><td>bioconda</td></tr>
+</tbody>
+</table>
+
+<h3>A.2 一键式环境配置</h3>
+<h4>A.2.1 方式一：逐条命令安装</h4>
+<pre><code class="language-bash">conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/
+conda config --set show_channel_urls yes
+
+conda create -n bioinfo -y -c conda-forge -c bioconda \
+    mamba fastqc fastp bwa samtools bcftools snpeff tabix
+
+conda activate bioinfo
+snpEff download -v ASM584v2</code></pre>
+
+<h4>A.2.2 方式二：使用环境文件</h4>
+<p>将以下内容保存为 <code>environment.yml</code>：</p>
+<pre><code class="language-yaml">name: bioinfo
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - mamba
+  - fastqc=0.12.1
+  - fastp=0.23.4
+  - bwa=0.7.18
+  - samtools=1.20
+  - bcftools=1.20
+  - snpeff=5.2
+  - tabix=1.20</code></pre>
+<pre><code class="language-bash">conda env create -f environment.yml
+conda activate bioinfo
+snpEff download -v ASM584v2</code></pre>
+
+<h3>A.3 Windows 用户：安装 WSL2</h3>
+<p>Windows 10/11 用户可通过 WSL2 获得完整的 Linux 环境：</p>
+<pre><code class="language-bash"># 安装 WSL 与 Ubuntu（在 Windows PowerShell 中以管理员身份运行）
+wsl --install -d Ubuntu-22.04
+# 重启后，Ubuntu 会自动启动，设置用户名与密码</code></pre>
+</section>
+
+<!-- ====================== 附录 B ====================== -->
+<section class="module" id="appB">
+<h2>附录 B 常见问题与排错</h2>
+
+<table>
+<thead><tr><th>问题现象</th><th>原因与解决方法</th></tr></thead>
+<tbody>
+<tr><td><code>conda: command not found</code></td><td>conda 未加入 PATH。重新打开终端或 <code>source ~/.bashrc</code></td></tr>
+<tr><td><code>conda install</code> 速度极慢</td><td>配置国内镜像源，或用 <code>mamba install</code> 加速</td></tr>
+<tr><td><code>bwa index</code> 报错</td><td>参考基因组文件损坏或格式错误</td></tr>
+<tr><td><code>failed to open index</code></td><td>缺少 BAM 索引。先执行 <code>samtools index</code></td></tr>
+<tr><td><code>mpileup fail to load index</code></td><td>BAM 未按坐标排序或索引过期</td></tr>
+<tr><td>变异数为 0 或异常多</td><td>检查参考序列名是否一致、ploidy 是否设为 1、过滤参数</td></tr>
+<tr><td><code>SnpEff database not found</code></td><td>数据库未下载或名称错误</td></tr>
+<tr><td>比对率异常低（&lt;50%）</td><td>数据与参考不匹配、污染严重或参数错误</td></tr>
+<tr><td><code>wget</code> 下载失败</td><td>网络波动。加 <code>-c</code> 断点续传</td></tr>
+<tr><td><code>Permission denied</code></td><td>权限不足。用 <code>ls -l</code> 检查</td></tr>
+<tr><td><code>No space left on device</code></td><td>磁盘空间不足</td></tr>
+</tbody>
+</table>
+
+<div class="box tip"><span class="tag">排错的通用方法论</span>
+<ol>
+<li><strong>完整阅读报错信息</strong>——错误信息通常直接指出了问题所在；</li>
+<li><strong>检查路径与文件名</strong>——相当一部分是拼写或路径错误；</li>
+<li><strong>检查输入文件</strong>——文件是否损坏？索引是否过期？</li>
+<li><strong>查阅官方文档与社区</strong>——Biostars、GitHub Issues；</li>
+<li><strong>最小化复现</strong>——用一个最小的示例定位问题。</li>
+</ol>
+</div>
+</section>
+
+<!-- ====================== 附录 C ====================== -->
+<section class="module" id="appC">
+<h2>附录 C 术语表</h2>
+
+<table>
+<thead><tr><th>术语</th><th>解释</th></tr></thead>
+<tbody>
+<tr><td>生物信息学（Bioinformatics）</td><td>运用计算机与统计方法处理、分析、解读生物数据的交叉学科</td></tr>
+<tr><td>高通量测序（NGS）</td><td>可并行测定数百万条 DNA 片段序列的技术</td></tr>
+<tr><td>读段（read）</td><td>测序仪输出的一条短序列</td></tr>
+<tr><td>单端/双端测序（SE/PE）</td><td>只测片段一端 / 两端都测</td></tr>
+<tr><td>Phred 分数（Q）</td><td>碱基质量的度量，Q = −10 log<sub>10</sub> P</td></tr>
+<tr><td>FASTA</td><td>存储序列的纯文本格式</td></tr>
+<tr><td>FASTQ</td><td>存储序列及其质量分数的格式</td></tr>
+<tr><td>SAM/BAM</td><td>存储比对结果的格式（文本/二进制）</td></tr>
+<tr><td>VCF/BCF</td><td>存储变异位点的格式（文本/二进制）</td></tr>
+<tr><td>比对（mapping）</td><td>将 read 定位到参考基因组的过程</td></tr>
+<tr><td>MAPQ</td><td>比对质量分数</td></tr>
+<tr><td>CIGAR</td><td>描述比对细节的紧凑字符串</td></tr>
+<tr><td>测序深度（depth）</td><td>每个基因组位置平均被覆盖的 read 数</td></tr>
+<tr><td>覆盖度（coverage）</td><td>被至少 1 条 read 覆盖的碱基占比</td></tr>
+<tr><td>PCR 重复（duplicate）</td><td>文库扩增产生的坐标相同的冗余 read</td></tr>
+<tr><td>变异检测（variant calling）</td><td>从比对结果判定变异位点的过程</td></tr>
+<tr><td>SNP</td><td>单核苷酸多态性</td></tr>
+<tr><td>InDel</td><td>插入/缺失变异</td></tr>
+<tr><td>基因型（genotype）</td><td>某位点的等位基因组成</td></tr>
+<tr><td>转换/颠换（Ts/Tv）</td><td>嘌呤-嘌呤或嘧啶-嘧啶 / 嘌呤-嘧啶替换</td></tr>
+<tr><td>同义突变（synonymous）</td><td>密码子改变但不改变氨基酸</td></tr>
+<tr><td>错义突变（missense）</td><td>密码子改变导致氨基酸改变</td></tr>
+<tr><td>无义突变（nonsense）</td><td>密码子变为终止密码子</td></tr>
+<tr><td>移码突变（frameshift）</td><td>插入/缺失导致读框移位</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ====================== 附录 D ====================== -->
+<section class="module" id="appD">
+<h2>附录 D 全部命令速查</h2>
+
+<h3>D.1 模块 1：数据获取</h3>
+<pre><code class="language-bash">cd ref
+wget -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/005/845/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.fna.gz
+wget -c https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/005/845/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.gff.gz
+gunzip GCF_000005845.2_ASM584v2_genomic.fna.gz
+
+cd ../data
+wget -c https://ftp.sra.ebi.ac.uk/vol1/fastq/ERR154/027/ERR15404827/ERR15404827_1.fastq.gz
+wget -c https://ftp.sra.ebi.ac.uk/vol1/fastq/ERR154/027/ERR15404827/ERR15404827_2.fastq.gz
+
+md5sum *.fastq.gz</code></pre>
+
+<h3>D.2 模块 2：质量控制</h3>
+<pre><code class="language-bash">fastqc -t 4 -o results/qc/ data/*.fastq.gz
+fastp -i data/ERR15404827_1.fastq.gz -I data/ERR15404827_2.fastq.gz \
+  -o results/qc/ERR15404827_1.clean.fastq.gz -O results/qc/ERR15404827_2.clean.fastq.gz \
+  --html results/qc/fastp.html --json results/qc/fastp.json \
+  --thread 4 --qualified_quality_phred 20 --unqualified_percent_limit 40 \
+  --length_required 50 --cut_front --cut_tail</code></pre>
+
+<h3>D.3 模块 3：序列比对</h3>
+<pre><code class="language-bash">bwa index ref/GCF_000005845.2_ASM584v2_genomic.fna
+samtools faidx ref/GCF_000005845.2_ASM584v2_genomic.fna
+bwa mem -t 4 ref/GCF_000005845.2_ASM584v2_genomic.fna \
+  results/qc/ERR15404827_1.clean.fastq.gz results/qc/ERR15404827_2.clean.fastq.gz \
+  > results/align/ERR15404827.sam</code></pre>
+
+<h3>D.4 模块 4：比对后处理</h3>
+<pre><code class="language-bash">samtools view -bS results/align/ERR15404827.sam -o results/align/ERR15404827.bam
+samtools sort -@ 4 results/align/ERR15404827.bam -o results/align/ERR15404827.sorted.bam
+samtools fixmate -m results/align/ERR15404827.sorted.bam results/align/ERR15404827.fixmate.bam
+samtools sort -@ 4 results/align/ERR15404827.fixmate.bam -o results/align/ERR15404827.fixmate.sorted.bam
+samtools markdup results/align/ERR15404827.fixmate.sorted.bam results/align/ERR15404827.dedup.bam
+samtools index results/align/ERR15404827.dedup.bam
+samtools flagstat results/align/ERR15404827.dedup.bam
+samtools coverage results/align/ERR15404827.dedup.bam</code></pre>
+
+<h3>D.5 模块 5：变异检测</h3>
+<pre><code class="language-bash">bcftools mpileup --ploidy 1 -f ref/GCF_000005845.2_ASM584v2_genomic.fna \
+  results/align/ERR15404827.dedup.bam | \
+bcftools call -mv -Ov -o results/variants/ERR15404827.raw.vcf
+bcftools filter -i 'QUAL >= 30 && DP >= 10' \
+  results/variants/ERR15404827.raw.vcf -o results/variants/ERR15404827.filtered.vcf
+bcftools stats results/variants/ERR15404827.filtered.vcf > results/variants/stats.txt</code></pre>
+
+<h3>D.6 模块 6：变异注释</h3>
+<pre><code class="language-bash">snpEff -v ASM584v2 results/variants/ERR15404827.filtered.vcf > results/annotation/ERR15404827.ann.vcf
+bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%INFO/ANN\n' results/annotation/ERR15404827.ann.vcf</code></pre>
+</section>
+
+<!-- ====================== 附录 E ====================== -->
+<section class="module" id="appE">
+<h2>附录 E 思考题参考答案</h2>
+
+<div class="box knowledge"><span class="tag">关于参考答案</span>
+<p>以下答案用于自检，建议先独立思考后再对照。部分开放性问题没有唯一答案，重在理解背后的原理。</p>
+</div>
+
+<h3>E.1 模块 1</h3>
+<ol>
+<li><strong>为什么用 .gz 压缩？</strong> FASTQ/FASTA 文件体积庞大，gzip 压缩可节省 70-80% 存储与传输成本；且 gzip 是流式压缩，工具可直接读取 .gz 文件。</li>
+<li><strong>R1/R2 的含义</strong> 双端测序从同一 DNA 片段的两端各测一条 read，分别存入 R1、R2 文件。若遗漏 R2，则退化为单端数据，比对准确性下降。</li>
+<li><strong>MD5 不一致的可能原因</strong> 文件传输损坏、下载不完整、文件被篡改、或下载了错误版本的文件。</li>
+</ol>
+
+<h3>E.2 模块 2</h3>
+<ol>
+<li>说明测序循环后期信号衰减、错误率升高。fastp 的 <code>--cut_tail</code> 会从末端滑动窗口修剪低质量碱基。</li>
+<li>过滤会丢弃低质量/过短的 read，故总数减少。损失 >30% 说明数据整体质量差、或过滤参数过严。</li>
+<li>当插入片段短于测序读长时，测序"读穿"了整个片段，继续读到另一端的接头序列。</li>
+</ol>
+
+<h3>E.3 模块 3</h3>
+<ol>
+<li><strong>为什么先建索引？</strong> 索引把"逐位置扫描比对"转化为"常数级快速查询"，使得数百万条 read 比对成为可能。</li>
+<li><strong>FLAG=99</strong> = 1+2+32+64，即：双端测序、与 mate 均正确比对、mate 在负链、是 read1。</li>
+<li><strong>MAPQ=0</strong> 表示比对位置不唯一（可能比对到多个位置，如重复区）。</li>
+</ol>
+
+<h3>E.4 模块 4</h3>
+<ol>
+<li>按坐标排序后，同一位置的 read 在文件中连续存放，变异检测可以顺序"堆积"同一位置的 read，避免随机访问带来的巨大开销。</li>
+<li>PCR 重复是同一 DNA 分子的多个扩增拷贝，信息冗余且会放大测序错误；生物学重复是独立来源的样本。变异检测需独立证据，PCR 重复只会放大错误。</li>
+<li>用"数据量/基因组大小"估算为约 124 Mb / 4.64 Mb ≈ 27×。实际值略低的可能原因：部分 read 被过滤/去重、部分 read 比对到参考基因组之外的序列。</li>
+</ol>
+
+<h3>E.5 模块 5</h3>
+<ol>
+<li>二者都是 Phred 尺度的质量分数，但对象不同：FASTQ 的碱基质量衡量"该碱基被测序仪读错"的概率；VCF 的 QUAL 衡量"该位点不是变异（判定错误）"的概率。</li>
+<li>QUAL 反映变异判定的统计置信度，DP 反映证据量。只设 QUAL 会放过"高置信但证据薄弱"的位点。</li>
+<li>更严的过滤会进一步减少变异数，去掉更多疑似假阳性，但也可能漏掉真实变异（尤其低深度区域）。</li>
+</ol>
+
+<h3>E.6 模块 6</h3>
+<ol>
+<li>遗传密码具有简并性（多个密码子编码同一氨基酸），故密码子第三位常发生同义替换而不改变氨基酸。</li>
+<li>无义突变影响通常更大：它导致蛋白提前截断，几乎必然破坏功能。</li>
+<li>基因间区不编码蛋白，变异通常不直接影响蛋白功能，因而更"容忍"、更易保留。</li>
+</ol>
+</section>
+
+<!-- ====================== 附录 F ====================== -->
+<section class="module" id="appF">
+<h2>附录 F 数据集信息卡与报告模板</h2>
+
+<h3>F.1 数据集信息卡</h3>
+
+<h4>F.1.1 主实验数据集：ERR15404827</h4>
+<table>
+<thead><tr><th>字段</th><th>值</th></tr></thead>
+<tbody>
+<tr><td>Run 访问号</td><td>ERR15404827</td></tr>
+<tr><td>样本访问号</td><td>SAMEA118914020</td></tr>
+<tr><td>研究项目</td><td>PRJEB94349</td></tr>
+<tr><td>物种</td><td>Escherichia coli str. K-12 substr. MG1655</td></tr>
+<tr><td>测序平台</td><td>Illumina MiSeq</td></tr>
+<tr><td>文库类型</td><td>双端，WGS，随机打断</td></tr>
+<tr><td>读长</td><td>250 bp</td></tr>
+<tr><td>read 对数</td><td>约 49.7 万</td></tr>
+<tr><td>数据量</td><td>约 124 Mb（约 27×）</td></tr>
+<tr><td>R1 下载</td><td><code>https://ftp.sra.ebi.ac.uk/vol1/fastq/ERR154/027/ERR15404827/ERR15404827_1.fastq.gz</code></td></tr>
+<tr><td>R2 下载</td><td><code>https://ftp.sra.ebi.ac.uk/vol1/fastq/ERR154/027/ERR15404827/ERR15404827_2.fastq.gz</code></td></tr>
+</tbody>
+</table>
+
+<h4>F.1.2 延伸实验数据集：DRR063436</h4>
+<table>
+<thead><tr><th>字段</th><th>值</th></tr></thead>
+<tbody>
+<tr><td>Run 访问号</td><td>DRR063436</td></tr>
+<tr><td>样本访问号</td><td>SAMD00053107</td></tr>
+<tr><td>研究项目</td><td>PRJDB4884</td></tr>
+<tr><td>物种</td><td>Escherichia coli（野生分离株）</td></tr>
+<tr><td>测序平台</td><td>Illumina MiSeq</td></tr>
+<tr><td>文库类型</td><td>双端，WGS，随机打断</td></tr>
+<tr><td>读长</td><td>75 bp</td></tr>
+<tr><td>read 对数</td><td>约 12.4 万</td></tr>
+<tr><td>数据量</td><td>约 18 Mb（约 4×）</td></tr>
+<tr><td>R1 下载</td><td><code>https://ftp.sra.ebi.ac.uk/vol1/fastq/DRR063/DRR063436/DRR063436_1.fastq.gz</code></td></tr>
+<tr><td>R2 下载</td><td><code>https://ftp.sra.ebi.ac.uk/vol1/fastq/DRR063/DRR063436/DRR063436_2.fastq.gz</code></td></tr>
+</tbody>
+</table>
+
+<h4>F.1.3 参考基因组</h4>
+<table>
+<thead><tr><th>字段</th><th>值</th></tr></thead>
+<tbody>
+<tr><td>物种</td><td>Escherichia coli str. K-12 substr. MG1655</td></tr>
+<tr><td>RefSeq 访问号</td><td>GCF_000005845.2</td></tr>
+<tr><td>染色体序列号</td><td>NC_000913.3</td></tr>
+<tr><td>基因组大小</td><td>4,641,652 bp</td></tr>
+<tr><td>SnpEff 数据库名</td><td>ASM584v2</td></tr>
+</tbody>
+</table>
+
+<h3>F.2 分析报告模板</h3>
+<pre><code class="language-bash"># 大肠杆菌重测序数据分析报告
+
+## 1. 摘要
+（一段话概括：目的、数据、方法、主要结论）
+
+## 2. 数据与方法
+- 数据集：ERR15404827（主）/ DRR063436（延伸）
+- 参考基因组：GCF_000005845.2 (NC_000913.3)
+- 软件版本：FastQC 0.12.1、fastp 0.23.4、BWA 0.7.18、
+  samtools 1.20、bcftools 1.20、SnpEff 5.2
+- 关键参数：质量过滤 Q>=20；比对 BWA-MEM 默认；
+  变异检测 ploidy=1；过滤 QUAL>=30 && DP>=10
+
+## 3. 结果
+- 3.1 质控统计
+- 3.2 比对统计
+- 3.3 变异检测结果
+- 3.4 变异注释结果
+
+## 4. 讨论
+- 同源对照接近零变异的科学意义
+- 深度对变异检测的影响（对比主/延伸实验）
+- 局限性与改进方向
+
+## 5. 结论
+（概括最重要的发现与收获）</code></pre>
+</section>
+
+</main>
+</div>
+
+<footer>
+生物信息学入门实验项目 · 面向本科及以上学生 · 内容基于公开数据集
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+</body>
+</html>
