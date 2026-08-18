@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCGA-LIHC 数据下载教程 | UCSC Xena</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary: #4cc9f0;
+            --accent: #f72585;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #212529;
+            --text-light: #6c757d;
+            --border: #e9ecef;
+            --step-bg: #f0f7ff;
+            --code-bg: #1e1e1e;
+            --code-text: #d4d4d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            line-height: 1.7;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        /* 顶部导航 */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+        }
+        .navbar .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1.5rem;
+            font-size: 0.95rem;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        .navbar a:hover { opacity: 1; }
+
+        /* 容器 */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Hero 区域 */
+        .hero {
+            background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+            color: white;
+            padding: 4rem 0 3.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+        }
+        .hero .container { position: relative; z-index: 1; }
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+        }
+        .hero p {
+            font-size: 1.15rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .hero .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            margin-top: 1.5rem;
+            backdrop-filter: blur(4px);
+        }
+
+        /* 步骤区域 */
+        .steps-section {
+            padding: 4rem 0;
+        }
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .section-title h2 {
+            font-size: 2rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+        .section-title p {
+            color: var(--text-light);
+            font-size: 1.05rem;
+        }
+
+        /* 步骤卡片 */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .step-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .step-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        .step-number {
+            position: absolute;
+            top: -16px;
+            left: 2rem;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(67,97,238,0.4);
+        }
+        .step-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            padding-top: 0.5rem;
+        }
+        .step-card .step-desc {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+
+        /* 操作图示 */
+        .screenshot {
+            background: var(--step-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            text-align: center;
+            border: 1px dashed var(--primary);
+        }
+        .screenshot .placeholder {
+            display: inline-block;
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+            margin: 0.5rem;
+            box-shadow: 0 2px 8px rgba(67,97,238,0.1);
+        }
+
+        /* 代码块 */
+        .code-block {
+            background: var(--code-bg);
+            color: var(--code-text);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .code-block .comment { color: #6a9955; }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .string { color: #ce9178; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .number { color: #b5cea8; }
+
+        /* 文件卡片 */
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .file-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+        }
+        .file-card.pink { border-left-color: var(--accent); }
+        .file-card.blue { border-left-color: var(--secondary); }
+        .file-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .file-card .file-icon {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            text-align: center;
+            line-height: 32px;
+            font-size: 1rem;
+            color: white;
+            background: var(--primary);
+        }
+        .file-card.pink .file-icon { background: var(--accent); }
+        .file-card.blue .file-icon { background: var(--secondary); color: #333; }
+        .file-card .file-meta {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+        .file-card ul {
+            padding-left: 1.2rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        .file-card ul li {
+            margin-bottom: 0.3rem;
+        }
+
+        /* 提示框 */
+        .tip-box {
+            background: linear-gradient(135deg, #fff3cd, #ffe69c);
+            border-left: 4px solid #ffc107;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .tip-box .tip-title {
+            font-weight: 700;
+            color: #856404;
+            margin-bottom: 0.3rem;
+        }
+        .tip-box p, .tip-box ul {
+            font-size: 0.92rem;
+            color: #856404;
+        }
+        .tip-box ul {
+            padding-left: 1.2rem;
+        }
+        .tip-box li { margin-bottom: 0.2rem; }
+
+        .warning-box {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-left: 4px solid #dc3545;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .warning-box .tip-title {
+            font-weight: 700;
+            color: #721c24;
+            margin-bottom: 0.3rem;
+        }
+        .warning-box p, .warning-box ul {
+            font-size: 0.92rem;
+            color: #721c24;
+        }
+        .warning-box ul {
+            padding-left: 1.2rem;
+        }
+        .warning-box li { margin-bottom: 0.2rem; }
+
+        /* 按钮 */
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 0.7rem 1.8rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(67,97,238,0.4);
+        }
+        .btn-outline {
+            display: inline-block;
+            background: transparent;
+            color: var(--primary);
+            padding: 0.7rem 1.8rem;
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* 表格 */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.92rem;
+        }
+        .info-table th {
+            background: var(--primary);
+            color: white;
+            padding: 0.7rem 1rem;
+            text-align: left;
+        }
+        .info-table td {
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .info-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .info-table tr:hover {
+            background: #e7f5ff;
+        }
+
+        /* 结尾区域 */
+        .footer {
+            background: #212529;
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+        .footer h3 {
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        .footer p {
+            color: #adb5bd;
+            margin-bottom: 1.5rem;
+        }
+        .footer .links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .footer a {
+            color: var(--secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .footer a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.8rem; }
+            .step-card { padding: 1.5rem; }
+            .navbar a { margin-left: 0.5rem; font-size: 0.85rem; }
+            .file-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="navbar">
+    <div class="container">
+        <strong style="color:white; font-size:1.1rem;">🧬 TCGA-LIHC 下载教程</strong>
+        <div>
+            <a href="#steps">步骤</a>
+            <a href="#files">文件说明</a>
+            <a href="#code">代码</a>
+            <a href="https://xena.ucsc.edu/" target="_blank" style="opacity:1; font-weight:600;">↗ 打开 Xena</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <h1>TCGA-LIHC 数据下载教程</h1>
+        <p>手把手教你从 UCSC Xena 下载肝癌（LIHC）的 HTSeq-FPKM 表达矩阵和临床表型数据</p>
+        <div class="badge">⏱ 预计耗时：5 分钟 | 💻 适合：R / Python 用户</div>
+    </div>
+</section>
+
+<!-- 步骤区域 -->
+<section class="steps-section" id="steps">
+    <div class="container">
+        <div class="section-title">
+            <h2>📋 详细下载步骤</h2>
+            <p>按照以下 5 个步骤，一步步完成数据下载</p>
+        </div>
+
+        <div class="steps">
+
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>打开 UCSC Xena 网站</h3>
+                <p class="step-desc">在浏览器中访问 UCSC Xena 官网，点击 "Launch Xena" 进入数据浏览器。</p>
+                <div class="screenshot">
+                    <span class="placeholder">🌐 打开 https://xena.ucsc.edu/ → 点击 <strong>Launch Xena</strong></span>
+                </div>
+                <div class="code-block">
+<span class="comment"># 直接在浏览器地址栏输入或直接点击上方按钮</span>
+<a href="https://xena.ucsc.edu/" target="_blank">https://xena.ucsc.edu/</a>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>点击左上角 "DATA SETS"</h3>
+                <p class="step-desc">进入主界面后，点击左上角的 <strong>DATA SETS</strong> 标签，进入数据集搜索页面。</p>
+                <div class="screenshot">
+                    <span class="placeholder">📂 点击左上角 <strong>DATA SETS</strong></span>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>搜索并找到 LIHC</h3>
+                <p class="step-desc">在列表中找到并点击 <strong>TCGA Liver Cancer (LIHC)</strong>。</p>
+                
+                
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>找到并下载 HTSeq-FPKM</h3>
+                <p class="step-desc">进入 LIHC 页面后，向下滚动找到 <strong>gene expression RNAseq</strong> 模块，点击其中的 <strong>HTSeq-FPKM</strong> 并进行下载。</p>
+				<p>不要下载UQ版本，本次不要UQ版本；后续扩展实验用STAR - Counts ,同样方式下载</p>
+                <div class="file-card blue" style="margin: 0.5rem 0;">
+                    <h4><span class="file-icon">📄</span> 下载文件 1：HTSeq-FPKM</h4>
+                    <p class="file-meta">文件名示例：<code>TCGA-LIHC.htseq_fpkm.tsv.gz</code></p>
+                    <ul>
+                        <li>内容：基因表达矩阵（行=基因，列=样本）</li>
+                        <li>格式：已做 log2(FPKM+1) 转换</li>
+                        <li>样本数：约 424 个</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="step-card">
+                <div class="step-number">5</div>
+                <h3>找到并下载 phenotype（临床表型）</h3>
+                <p class="step-desc">继续在同页面向下滚动，找到 <strong>phenotype</strong> 模块，点击并进行下载。</p>
+                <div class="file-card pink" style="margin: 0.5rem 0;">
+                    <h4><span class="file-icon">📋</span> 下载文件 2：Phenotype</h4>
+                    <p class="file-meta">文件名示例：<code>TCGA-LIHC.GDC_phenotype.tsv.gz</code></p>
+                    <ul>
+                        <li>内容：临床表型数据（年龄、性别、分期、 grade 等）</li>
+                        <li>样本数：约 439 个</li>
+                        <li>📌 建议：如果做生存分析，也顺便下载 <code>survival.tsv.gz</code></li>
+                    </ul>
+                </div>
+                <div class="tip-box">
+                  
+         
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- 文件说明 -->
+<section class="steps-section" id="files" style="background:white; border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+    <div class="container">
+        <div class="section-title">
+            <h2>📦 下载的文件说明</h2>
+            <p>了解你拿到的每个文件长什么样</p>
+        </div>
+
+        <div class="file-grid">
+            <div class="file-card blue">
+                <h4><span class="file-icon">📄</span> TCGA-LIHC.htseq_fpkm.tsv.gz</h4>
+                <p class="file-meta">💠 基因表达矩阵（HTSeq-FPKM）</p>
+                <table class="info-table" style="margin-top:0.5rem;">
+                    <tr><th>属性</th><th>说明</th></tr>
+                    <tr><td>行（Row）</td><td>基因 Ensembl ID（如 ENSG00000000003.14）</td></tr>
+                    <tr><td>列（Column）</td><td>样本 barcode（如 TCGA-2H-A9GF-01A）</td></tr>
+                    <tr><td>数值</td><td>log2(FPKM + 1) 转换后的值</td></tr>
+                    <tr><td>样本数</td><td>约 424 个（含肿瘤 + 正常）</td></tr>
+                </table>
+            </div>
+            <div class="file-card pink">
+                <h4><span class="file-icon">📋</span> TCGA-LIHC.GDC_phenotype.tsv.gz</h4>
+                <p class="file-meta">🩺 临床表型数据（Phenotype）</p>
+                <table class="info-table" style="margin-top:0.5rem;">
+                    <tr><th>属性</th><th>说明</th></tr>
+                    <tr><td>行（Row）</td><td>样本（第一列为 sample_id）</td></tr>
+                    <tr><td>列（Column）</td><td>临床变量</td></tr>
+                    <tr><td>常见字段</td><td>age_at_diagnosis, gender, stage, grade, sample_type 等</td></tr>
+                    <tr><td>样本数</td><td>约 439 个</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="warning-box">
+            <div class="tip-title">⚠️ 注意事项</div>
+            <ul>
+                <li><strong>样本数不一致是正常的：</strong>表达矩阵约 424 个样本，临床表型约 439 个，因为部分样本没有表达数据。</li>
+                <li><strong>合并时以表达矩阵为准：</strong>用 <code>merge</code> 或 <code>inner_join</code> 按样本 ID 对齐即可，只会保留两边都有的样本。</li>
+                <li><strong>barcode 第 14-15 位：</strong><code>01</code> = 肿瘤组织，<code>11</code> = 正常组织，<code>02</code> = 转移的肿瘤。</li>
+                <li><strong>FPKM 不适合直接做差异分析：</strong>如果你需要做 DESeq2/edgeR 的差异表达，建议下载上面的 <code>STAR - Counts</code> 而不是 FPKM。</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- 代码区域 -->
+<section class="steps-section" id="code">
+    <div class="container">
+        <div class="section-title">
+            <h2>📝 下载后如何用 R / Python 读取</h2>
+            <p>拿到文件后，快速查看和合并数据</p>
+        </div>
+
+        <!-- R 代码 -->
+        <div class="step-card">
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+                <span style="background:#276DC3; color:white; padding:0.3rem 0.8rem; border-radius:6px; font-weight:600; font-size:0.85rem;">R</span>
+                <h3 style="font-size:1.2rem; margin:0;">R 读取代码</h3>
+            </div>
+
+            <p class="step-desc">将下载的两个文件放在同一个文件夹，运行以下代码：</p>
+
+            <div class="code-block">
+<span class="comment"># 1. 安装必要的包（第一次运行时）</span>
+install.packages(c(<span class="string">"data.table"</span>, <span class="string">"tidyverse"</span>))
+
+<span class="comment"># 2. 加载包</span>
+library(data.table)
+library(tidyverse)
+
+<span class="comment"># 3. 设置文件路径（改成你实际的路径）</span>
+fpkm_file  &lt;- <span class="string">"TCGA-LIHC.htseq_fpkm.tsv"</span>
+pheno_file &lt;- <span class="string">"TCGA-LIHC.GDC_phenotype.tsv"</span>
+
+<span class="comment"># 4. 读取文件</span>
+expr  &lt;- fread(fpkm_file)    <span class="comment"># 表达矩阵</span>
+pheno &lt;- fread(pheno_file)   <span class="comment"># 临床表型</span>
+
+<span class="comment"># 5. 查看数据结构</span>
+dim(expr)    <span class="comment"># 查看维度</span>
+dim(pheno)   <span class="comment"># 查看维度</span>
+colnames(expr)[1:5]  <span class="comment"># 查看前5个列名</span>
+colnames(pheno)[1:5] <span class="comment"># 查看前5个列名</span>
+head(expr, 3)  <span class="comment"># 查看表达矩阵前3行</span>
+head(pheno, 3) <span class="comment"># 查看临床表型前3行</span>
+
+<span class="comment"># 6. 只保留肿瘤样本（barcode 第14-15位是 01）</span>
+<span class="comment"># 样本ID格式：TCGA-2H-A9GF-01A，第14-15位是 -01-</span>
+tumor_samples &lt;- pheno$sample_id %&gt;%
+    str_subset(<span class="string">"-01-"</span>) <span class="comment"># 只保留肿瘤</span>
+
+<span class="comment"># 7. 合并表达矩阵和临床表型（按样本ID）</span>
+<span class="comment"># 先把表达矩阵转置，让样本变成行</span>
+expr_t &lt;- expr %&gt;%
+    column_to_rownames(<span class="string">"gene_id"</span>) %&gt;%   <span class="comment"># 第一行是基因ID</span>
+    t() %&gt;%                                         <span class="comment"># 转置</span>
+    as.data.frame() %&gt;%
+    rownames_to_column(<span class="string">"sample_id"</span>)      <span class="comment"># 样本ID列</span>
+
+merged &lt;- inner_join(expr_t, pheno, by = <span class="string">"sample_id"</span>)
+<span class="comment"># 或者更简单的方法：</span>
+merged &lt;- pheno %&gt;%
+    inner_join(t(expr[, -1]), by = <span class="string">"row.names"</span>) %&gt;%
+    column_to_rownames(<span class="string">"row.names"</span>)
+
+<span class="comment"># 8. 保存合并后的数据</span>
+write.csv(merged, <span class="string">"TCGA-LIHC_merged.csv"</span>, row.names = FALSE)
+            </div>
+        </div>
+
+        <!-- Python 代码 -->
+        <div class="step-card">
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+                <span style="background:#3776AB; color:white; padding:0.3rem 0.8rem; border-radius:6px; font-weight:600; font-size:0.85rem;">Python</span>
+                <h3 style="font-size:1.2rem; margin:0;">Python 读取代码</h3>
+            </div>
+
+            <p class="step-desc">将下载的两个文件放在同一个文件夹，运行以下代码：</p>
+
+            <div class="code-block">
+<span class="comment"># 1. 安装必要的库（第一次运行时）</span>
+<span class="comment"># pip install pandas</span>
+
+<span class="comment"># 2. 读取文件</span>
+import pandas as pd
+
+fpkm_file  = <span class="string">"TCGA-LIHC.htseq_fpkm.tsv"</span>
+pheno_file = <span class="string">"TCGA-LIHC.GDC_phenotype.tsv"</span>
+
+expr  = pd.read_csv(fpkm_file,  sep=<span class="string">'\\t'</span>, index_col=0)  <span class="comment"># 表达矩阵</span>
+pheno = pd.read_csv(pheno_file, sep=<span class="string">'\\t'</span>, index_col=0)   <span class="comment"># 临床表型</span>
+
+<span class="comment"># 3. 查看数据结构</span>
+print(<span class="string">"Expression shape:"</span>, expr.shape)    <span class="comment"># (基因数, 样本数)</span>
+print(<span class="string">"Phenotype shape:"</span>, pheno.shape)   <span class="comment"># (样本数, 临床变量数)</span>
+print(expr.head())
+print(pheno.head())
+
+<span class="comment"># 4. 只保留肿瘤样本</span>
+<span class="comment"># 样本ID格式：TCGA-2H-A9GF-01A，第14-15位是 -01-</span>
+tumor_mask = pheno.index.str.contains(<span class="string">r"-01-"</span>)
+pheno_tumor = pheno.loc[tumor_mask]
+
+<span class="comment"># 5. 合并（按样本ID）</span>
+<span class="comment"># 表达矩阵的行是基因，需要转置让样本变成行</span>
+expr_t = expr.T  <span class="comment"># 转置</span>
+expr_t.index.name = <span class="string">'sample_id'</span>
+
+merged = pheno.join(expr_t, how=<span class="string">'inner'</span>)
+<span class="comment"># 或者只合并肿瘤样本：</span>
+merged_tumor = pheno_tumor.join(expr_t, how=<span class="string">'inner'</span>)
+
+<span class="comment"># 6. 保存</span>
+merged_tumor.to_csv(<span class="string">"TCGA-LIHC_merged_tumor.csv"</span>)
+            </div>
+        </div>
+
+        <!-- 直链下载 -->
+        <div class="step-card" style="background:linear-gradient(135deg, #f0f7ff, #e7f5ff);">
+            <h3 style="margin-bottom:0.5rem;">🔗 不想点网页？直接用命令下载</h3>
+            <p class="step-desc">如果你有服务器或 Mac/Linux 终端，可以直接用 <code>wget</code> 下载，一步到位：</p>
+            <div class="code-block">
+<span class="comment"># HTSeq-FPKM 表达矩阵</span>
+wget https://gdc.xenahubs.net/download/TCGA-LIHC/Xena_Matrices/TCGA-LIHC.htseq_fpkm.tsv.gz
+
+<span class="comment"># 临床表型 phenotype</span>
+wget https://gdc.xenahubs.net/download/TCGA-LIHC/Xena_Matrices/TCGA-LIHC.GDC_phenotype.tsv.gz
+
+<span class="comment"># 生存数据（做KM曲线或Cox回归时用到，可选）</span>
+wget https://gdc.xenahubs.net/download/TCGA-LIHC/Xena_Matrices/TCGA-LIHC.survival.tsv.gz
+
+<span class="comment"># 解压</span>
+gunzip TCGA-LIHC.htseq_fpkm.tsv.gz
+gunzip TCGA-LIHC.GDC_phenotype.tsv.gz
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 结尾 -->
+<section class="footer">
+    <div class="container">
+        <h3>🎉 教程结束，开始你的分析吧！</h3>
+        <p>恭喜你完成了 TCGA-LIHC 数据的下载和读取。接下来可以做什么？</p>
+        <div class="links" style="margin-bottom:2rem;">
+            <a href="https://xenabrowser.net/heatmap/" target="_blank">🔥 画热图</a>
+            <a href="https://xenabrowser.net/survival/" target="_blank">📊 生存分析</a>
+            <a href="https://www.google.com/search?q=TCGA+LIHC+WGCNA+R" target="_blank">🕸 WGCNA 分析</a>
+            <a href="https://www.google.com/search?q=TCGA+LIHC+DESeq2+差异表达" target="_blank">🔬 差异表达分析</a>
+        </div>
+        <p style="font-size:0.85rem; color:#6c757d;">
+            数据来源：UCSC Xena Browser | TCGA Data Hub<br>
+            本教程仅供学习研究使用，以实际操作页面为准，仅供参考！
+        </p>
+    </div>
+</section>
+
+</body>
+</html>
