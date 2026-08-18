@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生信数据库导航</title>
+<style>
+  :root {
+    --maxw: 880px;
+    --color-text: #1f2328;
+    --color-text-2: #57606a;
+    --color-line: #e5e7eb;
+    --color-accent: #0b5fff;
+    --color-bg: #ffffff;
+    --ff-body: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    --fs-body: 15px;
+    --fs-title: 20px;
+    --fs-cat: 13px;
+    --fs-desc: 13.5px;
+    --fs-foot: 12.5px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--ff-body);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--fs-body);
+    line-height: 1.6;
+  }
+  header {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 28px 20px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 12px;
+  }
+  h1 { font-size: var(--fs-title); font-weight: 600; }
+  #q {
+    flex: 1;
+    min-width: 200px;
+    padding: 7px 12px;
+    font-size: 14px;
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    outline: none;
+  }
+  #q:focus { border-color: var(--color-accent); }
+  main { max-width: var(--maxw); margin: 0 auto; padding: 0 20px 48px; }
+  section { padding: 16px 0 4px; }
+  h2 {
+    font-size: var(--fs-cat);
+    font-weight: 600;
+    color: var(--color-text-2);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--color-line);
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+  ul { list-style: none; }
+  li {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 3px 0;
+  }
+  a { color: var(--color-accent); text-decoration: none; white-space: nowrap; }
+  a:hover { text-decoration: underline; }
+  .desc { color: var(--color-text-2); font-size: var(--fs-desc); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hidden { display: none; }
+  #empty { display: none; padding: 32px 0; color: var(--color-text-2); text-align: center; }
+  footer {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 12px 20px 24px;
+    color: var(--color-text-2);
+    font-size: var(--fs-foot);
+    border-top: 1px solid var(--color-line);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>生信数据库导航</h1>
+  <input id="q" type="search" placeholder="搜索数据库名称或描述…（/ 键快速聚焦）" autofocus>
+</header>
+
+<main id="main">
+
+<section data-cat="核酸与基因组">
+  <h2>核酸与基因组</h2>
+  <ul>
+    <li><a href="https://www.ncbi.nlm.nih.gov/genbank/" target="_blank" rel="noopener">GenBank</a><span class="desc">NCBI 核酸序列主库</span></li>
+    <li><a href="https://www.ebi.ac.uk/ena" target="_blank" rel="noopener">ENA</a><span class="desc">欧洲核苷酸档案库（EMBL-EBI）</span></li>
+    <li><a href="https://www.ddbj.nig.ac.jp/" target="_blank" rel="noopener">DDBJ</a><span class="desc">日本 DNA 数据库（INSDC 成员）</span></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/refseq/" target="_blank" rel="noopener">RefSeq</a><span class="desc">NCBI 参考序列（基因组/转录本/蛋白）</span></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/sra" target="_blank" rel="noopener">SRA</a><span class="desc">高通量测序原始数据存档</span></li>
+    <li><a href="https://www.ensembl.org/" target="_blank" rel="noopener">Ensembl</a><span class="desc">脊椎动物基因组注释与浏览器</span></li>
+    <li><a href="https://plants.ensembl.org/" target="_blank" rel="noopener">Ensembl Plants</a><span class="desc">植物基因组（含真菌/原生生物入口）</span></li>
+  </ul>
+</section>
+
+<section data-cat="基因组浏览器">
+  <h2>基因组浏览器</h2>
+  <ul>
+    <li><a href="https://genome.ucsc.edu/" target="_blank" rel="noopener">UCSC Genome Browser</a><span class="desc">最常用基因组浏览器，轨道资源丰富</span></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/gdv/" target="_blank" rel="noopener">NCBI GDV</a><span class="desc">NCBI Genome Data Viewer</span></li>
+    <li><a href="https://jbrowse.org/jb2/" target="_blank" rel="noopener">JBrowse 2</a><span class="desc">可自建的开源基因组浏览器</span></li>
+    <li><a href="https://software.broadinstitute.org/software/igv/" target="_blank" rel="noopener">IGV</a><span class="desc">本地高通量数据可视化（桌面端）</span></li>
+  </ul>
+</section>
+
+<section data-cat="序列比对与工具">
+  <h2>序列比对与在线工具</h2>
+  <ul>
+    <li><a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi" target="_blank" rel="noopener">NCBI BLAST</a><span class="desc">序列相似性搜索（nt/nr/基因组）</span></li>
+    <li><a href="https://www.ebi.ac.uk/jdispatcher/ss/ncbiblast" target="_blank" rel="noopener">EBI BLAST</a><span class="desc">EMBL-EBI BLAST 入口</span></li>
+    <li><a href="https://www.ebi.ac.uk/jdispatcher/msa/clustalo" target="_blank" rel="noopener">Clustal Omega</a><span class="desc">多序列比对</span></li>
+    <li><a href="https://www.ebi.ac.uk/jdispatcher/msa/mafft" target="_blank" rel="noopener">MAFFT</a><span class="desc">多序列比对（大序列集表现好）</span></li>
+    <li><a href="https://www.ebi.ac.uk/jdispatcher/pfa/pratt" target="_blank" rel="noopener">EMBOSS / Job Dispatcher</a><span class="desc">EBI 序列分析工具集入口</span></li>
+    <li><a href="https://web.expasy.org/translate/" target="_blank" rel="noopener">ExPASy Translate</a><span class="desc">核酸→蛋白翻译</span></li>
+    <li><a href="https://primer3.ut.ee/" target="_blank" rel="noopener">Primer3</a><span class="desc">引物设计</span></li>
+  </ul>
+</section>
+
+<section data-cat="蛋白质">
+  <h2>蛋白质与结构</h2>
+  <ul>
+    <li><a href="https://www.uniprot.org/" target="_blank" rel="noopener">UniProt</a><span class="desc">蛋白序列与功能注释（Swiss-Prot/TrEMBL）</span></li>
+    <li><a href="https://www.rcsb.org/" target="_blank" rel="noopener">RCSB PDB</a><span class="desc">蛋白三维结构数据库</span></li>
+    <li><a href="https://alphafold.ebi.ac.uk/" target="_blank" rel="noopener">AlphaFold DB</a><span class="desc">AI 预测蛋白结构库</span></li>
+    <li><a href="https://www.ebi.ac.uk/interpro/" target="_blank" rel="noopener">InterPro</a><span class="desc">蛋白家族/结构域整合注释（含 Pfam）</span></li>
+    <li><a href="https://string-db.org/" target="_blank" rel="noopener">STRING</a><span class="desc">蛋白互作网络</span></li>
+    <li><a href="https://thebiogrid.org/" target="_blank" rel="noopener">BioGRID</a><span class="desc">实验验证的蛋白/基因互作</span></li>
+    <li><a href="https://swissmodel.expasy.org/" target="_blank" rel="noopener">SWISS-MODEL</a><span class="desc">同源建模在线服务</span></li>
+    <li><a href="https://www.expasy.org/" target="_blank" rel="noopener">ExPASy</a><span class="desc">SIB 蛋白分析工具门户</span></li>
+  </ul>
+</section>
+
+<section data-cat="基因表达">
+  <h2>基因表达与转录组</h2>
+  <ul>
+    <li><a href="https://www.ncbi.nlm.nih.gov/geo/" target="_blank" rel="noopener">GEO</a><span class="desc">NCBI 基因表达数据集（芯片/RNA-seq）</span></li>
+    <li><a href="https://www.ebi.ac.uk/gxa/" target="_blank" rel="noopener">Expression Atlas</a><span class="desc">EBI 表达图谱（基线/差异表达）</span></li>
+    <li><a href="https://gtexportal.org/" target="_blank" rel="noopener">GTEx</a><span class="desc">人组织特异性表达与 eQTL</span></li>
+    <li><a href="https://portal.gdc.cancer.gov/" target="_blank" rel="noopener">GDC (TCGA)</a><span class="desc">癌症基因组数据门户</span></li>
+    <li><a href="https://www.cbioportal.org/" target="_blank" rel="noopener">cBioPortal</a><span class="desc">癌症基因组可视化与挖掘</span></li>
+    <li><a href="https://www.encodeproject.org/" target="_blank" rel="noopener">ENCODE</a><span class="desc">人/鼠功能基因组元件图谱</span></li>
+  </ul>
+</section>
+
+<section data-cat="功能注释与通路">
+  <h2>功能注释与通路</h2>
+  <ul>
+    <li><a href="https://www.genome.jp/kegg/" target="_blank" rel="noopener">KEGG</a><span class="desc">通路/代谢/疾病综合数据库</span></li>
+    <li><a href="http://geneontology.org/" target="_blank" rel="noopener">Gene Ontology</a><span class="desc">GO 功能注释本体</span></li>
+    <li><a href="https://reactome.org/" target="_blank" rel="noopener">Reactome</a><span class="desc">人工审编的通路数据库</span></li>
+    <li><a href="https://www.gsea-msigdb.org/gsea/msigdb/" target="_blank" rel="noopener">MSigDB</a><span class="desc">GSEA 基因集库（hallmark 等）</span></li>
+    <li><a href="https://david.ncifcrf.gov/" target="_blank" rel="noopener">DAVID</a><span class="desc">经典富集分析工具</span></li>
+    <li><a href="https://metascape.org/" target="_blank" rel="noopener">Metascape</a><span class="desc">一站式基因功能富集分析</span></li>
+    <li><a href="https://www.genecards.org/" target="_blank" rel="noopener">GeneCards</a><span class="desc">人类基因综合信息门户</span></li>
+  </ul>
+</section>
+
+<section data-cat="变异与临床">
+  <h2>变异与临床</h2>
+  <ul>
+    <li><a href="https://www.ncbi.nlm.nih.gov/snp/" target="_blank" rel="noopener">dbSNP</a><span class="desc">单核苷酸多态性数据库</span></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/clinvar/" target="_blank" rel="noopener">ClinVar</a><span class="desc">变异-表型临床意义</span></li>
+    <li><a href="https://gnomad.broadinstitute.org/" target="_blank" rel="noopener">gnomAD</a><span class="desc">大规模人群等位基因频率</span></li>
+    <li><a href="https://cancer.sanger.ac.uk/cosmic" target="_blank" rel="noopener">COSMIC</a><span class="desc">体细胞突变（癌症）</span></li>
+    <li><a href="https://www.internationalgenome.org/" target="_blank" rel="noopener">1000 Genomes</a><span class="desc">千人基因组计划</span></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/dbgap/" target="_blank" rel="noopener">dbGaP</a><span class="desc">基因型-表型受控访问数据</span></li>
+    <li><a href="https://www.ebi.ac.uk/gwas/" target="_blank" rel="noopener">GWAS Catalog</a><span class="desc">全基因组关联研究目录</span></li>
+  </ul>
+</section>
+
+<section data-cat="RNA">
+  <h2>RNA 与调控</h2>
+  <ul>
+    <li><a href="https://www.mirbase.org/" target="_blank" rel="noopener">miRBase</a><span class="desc">microRNA 序列与注释</span></li>
+    <li><a href="https://rfam.org/" target="_blank" rel="noopener">Rfam</a><span class="desc">非编码 RNA 家族（协方差模型）</span></li>
+    <li><a href="http://www.noncode.org/" target="_blank" rel="noopener">NONCODE</a><span class="desc">长链非编码 RNA 数据库</span></li>
+    <li><a href="https://jaspar.elixir.no/" target="_blank" rel="noopener">JASPAR</a><span class="desc">转录因子结合 motif</span></li>
+    <li><a href="http://cistrome.org/db/" target="_blank" rel="noopener">Cistrome DB</a><span class="desc">ChIP-seq/ATAC-seq 公共数据整合</span></li>
+    <li><a href="http://rna.sysu.edu.cn/chipbase/" target="_blank" rel="noopener">ChIPBase</a><span class="desc">转录调控网络（中大）</span></li>
+  </ul>
+</section>
+
+<section data-cat="单细胞">
+  <h2>单细胞与空间组学</h2>
+  <ul>
+    <li><a href="https://cellxgene.cziscience.com/" target="_blank" rel="noopener">CELLxGENE</a><span class="desc">CZI 单细胞数据门户与可视化</span></li>
+    <li><a href="https://www.humancellatlas.org/" target="_blank" rel="noopener">Human Cell Atlas</a><span class="desc">人类细胞图谱计划</span></li>
+    <li><a href="https://singlecell.broadinstitute.org/single_cell" target="_blank" rel="noopener">Single Cell Portal</a><span class="desc">Broad 单细胞数据门户</span></li>
+    <li><a href="https://www.scrna-tools.org/" target="_blank" rel="noopener">scRNA-tools</a><span class="desc">单细胞分析工具目录</span></li>
+  </ul>
+</section>
+
+<section data-cat="模式生物">
+  <h2>模式生物数据库</h2>
+  <ul>
+    <li><a href="https://flybase.org/" target="_blank" rel="noopener">FlyBase</a><span class="desc">果蝇</span></li>
+    <li><a href="https://wormbase.org/" target="_blank" rel="noopener">WormBase</a><span class="desc">线虫</span></li>
+    <li><a href="https://www.yeastgenome.org/" target="_blank" rel="noopener">SGD</a><span class="desc">酿酒酵母</span></li>
+    <li><a href="https://www.arabidopsis.org/" target="_blank" rel="noopener">TAIR</a><span class="desc">拟南芥</span></li>
+    <li><a href="https://www.informatics.jax.org/" target="_blank" rel="noopener">MGI</a><span class="desc">小鼠基因组信息</span></li>
+    <li><a href="https://zfin.org/" target="_blank" rel="noopener">ZFIN</a><span class="desc">斑马鱼</span></li>
+    <li><a href="https://rgd.mcw.edu/" target="_blank" rel="noopener">RGD</a><span class="desc">大鼠基因组数据库</span></li>
+  </ul>
+</section>
+
+<section data-cat="文献">
+  <h2>文献与知识库</h2>
+  <ul>
+    <li><a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubMed</a><span class="desc">生物医学文献检索</span></li>
+    <li><a href="https://europepmc.org/" target="_blank" rel="noopener">Europe PMC</a><span class="desc">欧洲文献库（全文/API 友好）</span></li>
+    <li><a href="https://www.biorxiv.org/" target="_blank" rel="noopener">bioRxiv</a><span class="desc">生物学预印本</span></li>
+    <li><a href="https://www.protocols.io/" target="_blank" rel="noopener">protocols.io</a><span class="desc">实验方案共享平台</span></li>
+  </ul>
+</section>
+
+<section data-cat="国内数据库">
+  <h2>国内数据库</h2>
+  <ul>
+    <li><a href="https://ngdc.cncb.ac.cn/" target="_blank" rel="noopener">NGDC</a><span class="desc">国家基因组科学数据中心（CNCB）</span></li>
+    <li><a href="https://ngdc.cncb.ac.cn/gsa/" target="_blank" rel="noopener">GSA</a><span class="desc">组学原始数据归档库（国内投递）</span></li>
+    <li><a href="https://db.cngb.org/" target="_blank" rel="noopener">CNGBdb</a><span class="desc">国家基因库生命大数据平台</span></li>
+    <li><a href="https://www.biosino.org/" target="_blank" rel="noopener">BioSino</a><span class="desc">上海生物信息技术研究中心</span></li>
+  </ul>
+</section>
+
+<section data-cat="综合门户">
+  <h2>综合门户</h2>
+  <ul>
+    <li><a href="https://www.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">NCBI</a><span class="desc">美国生物技术信息中心</span></li>
+    <li><a href="https://www.ebi.ac.uk/" target="_blank" rel="noopener">EMBL-EBI</a><span class="desc">欧洲生物信息研究所</span></li>
+    <li><a href="https://omictools.com/" target="_blank" rel="noopener">OMICtools</a><span class="desc">生信软件工具目录</span></li>
+    <li><a href="https://bio.tools/" target="_blank" rel="noopener">bio.tools</a><span class="desc">生信工具注册表（ELIXIR）</span></li>
+  </ul>
+</section>
+
+<div id="empty">没有匹配的数据库，换个关键词试试。</div>
+
+</main>
+
+<footer>
+  生信项目组内部导航 · 纯静态单文件，无外部依赖 · 按 <b>/</b> 键聚焦搜索，Esc 清空
+</footer>
+
+<script>
+(function () {
+  var q = document.getElementById('q');
+  var sections = document.querySelectorAll('section');
+  var empty = document.getElementById('empty');
+
+  function filter() {
+    var kw = q.value.trim().toLowerCase();
+    var any = false;
+    for (var i = 0; i < sections.length; i++) {
+      var lis = sections[i].querySelectorAll('li');
+      var show = 0;
+      for (var j = 0; j < lis.length; j++) {
+        var hit = !kw || lis[j].textContent.toLowerCase().indexOf(kw) !== -1;
+        lis[j].className = hit ? '' : 'hidden';
+        if (hit) show++;
+      }
+      sections[i].className = show ? '' : 'hidden';
+      if (show) any = true;
+    }
+    empty.style.display = any ? 'none' : 'block';
+  }
+
+  q.addEventListener('input', filter);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== q) { e.preventDefault(); q.focus(); }
+    if (e.key === 'Escape') { q.value = ''; filter(); q.blur(); }
+  });
+})();
+</script>
+
+</body>
+</html>
